@@ -20,6 +20,7 @@ namespace OnlineShop.Controllers
         }
 
         // GET: Products
+        // GET: Products
         public async Task<IActionResult> Index()
         {
             return View(await _context.Product.ToListAsync());
@@ -54,14 +55,24 @@ namespace OnlineShop.Controllers
         // POST: Products/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Price")] Product product)
+        public async Task<IActionResult> Create(Product product, IFormFile imageFile)
         {
             if (ModelState.IsValid)
             {
+                if (imageFile != null)
+                {
+                    using var ms = new MemoryStream();
+                    await imageFile.CopyToAsync(ms);
+                    product.Image = ms.ToArray();
+                }
+
                 _context.Add(product);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", product.CategoryId);
             return View(product);
         }
 
