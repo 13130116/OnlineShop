@@ -16,7 +16,7 @@ namespace OnlineShop.Models
         public int Stock { get; set; } // 商品庫存
         // 外鍵
         public int CategoryId { get; set; }
-
+        public byte[] Image { get; set; }
         // 導覽屬性
         public Category Category { get; set; }
     }
