@@ -1,4 +1,4 @@
-﻿@model IEnumerable<OnlineShop.Models.Product>
+﻿@model OnlineShop.Models.PaginatedList<OnlineShop.Models.Product>
 
 @{
     ViewData["Title"] = "Index";
@@ -10,6 +10,20 @@
     <a asp-action="Create">Create New</a>
 </p>
 
+<form asp-action="Index" method="get">
+    <div class="mb-3">
+        <input type="text"
+               name="searchString"
+               class="form-control"
+               placeholder="請輸入商品名稱">
+
+        <button type="submit"
+                class="btn btn-primary mt-2">
+            搜尋
+        </button>
+    </div>
+</form>
+
 <table class="table">
     <thead>
         <tr>
@@ -17,10 +31,10 @@
                 商品圖片
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Name)
+                商品名稱
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Price)
+                價格
             </th>
             <th></th>
         </tr>
@@ -61,3 +75,21 @@
         }
     </tbody>
 </table>
+
+<div>
+    @if (Model.HasPreviousPage)
+    {
+        <a asp-action="Index"
+           asp-route-pageNumber="@(Model.PageIndex - 1)">
+            上一頁
+        </a>
+    }
+
+    @if (Model.HasNextPage)
+    {
+        <a asp-action="Index"
+           asp-route-pageNumber="@(Model.PageIndex + 1)">
+            下一頁
+        </a>
+    }
+</div>

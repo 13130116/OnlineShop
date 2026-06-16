@@ -28,3 +28,39 @@
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+
+
+<hr />
+
+<h3>留言區</h3>
+
+@if (Model.Comments != null && Model.Comments.Any())
+{
+    @foreach (var c in Model.Comments)
+    {
+        <div class="border p-2 mb-2">
+            <p>@c.Content</p>
+            <small>@c.CreatedAt</small>
+        </div>
+    }
+}
+else
+{
+    <p>目前沒有留言</p>
+}
+
+<hr />
+
+<h4>新增留言</h4>
+
+<form asp-action="AddComment" method="post">
+    <input type="hidden" name="ProductId" value="@Model.Id" />
+
+    <div class="form-group">
+        <textarea name="Content" class="form-control" placeholder="輸入留言"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-2">
+        送出留言
+    </button>
+</form>
