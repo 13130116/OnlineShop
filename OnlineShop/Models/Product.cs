@@ -19,5 +19,7 @@ namespace OnlineShop.Models
         public byte[]? Image { get; set; }
         // 導覽屬性
         public Category? Category { get; set; }
+
+        public List<Comment>? Comments { get; set; }
     }
 }

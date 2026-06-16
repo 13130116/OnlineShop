@@ -21,9 +21,24 @@ namespace OnlineShop.Controllers
 
         // GET: Products
         // GET: Products
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, int? pageNumber)
         {
-            return View(await _context.Product.ToListAsync());
+            var products = from p in _context.Product
+                           select p;
+
+            // 搜尋功能
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                products = products.Where(p => p.Name.Contains(searchString));
+            }
+
+            int pageSize = 5;
+
+            // 分頁
+            return View(await PaginatedList<Product>.CreateAsync(
+                products.AsNoTracking(),
+                pageNumber ?? 1,
+                pageSize));
         }
 
         // GET: Products/Details/5
@@ -35,6 +50,7 @@ namespace OnlineShop.Controllers
             }
 
             var product = await _context.Product
+                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt))
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {
@@ -42,6 +58,24 @@ namespace OnlineShop.Controllers
             }
 
             return View(product);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddComment(Comment comment)
+        {
+            if (comment == null || string.IsNullOrWhiteSpace(comment.Content))
+            {
+                return RedirectToAction("Details", new { id = comment.ProductId });
+            }
+
+            comment.CreatedAt = DateTime.Now;
+            comment.Content = comment.Content?.Trim();
+
+            _context.Comment.Add(comment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Details", new { id = comment.ProductId });
         }
 
         // GET: Products/Create
@@ -177,5 +211,7 @@ namespace OnlineShop.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
+
     } // <-- 這是 ProductsController 的結尾
 } // <-- 這是 namespace 的結尾
