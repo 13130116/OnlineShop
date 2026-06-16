@@ -1,0 +1,41 @@
+﻿@model List<OnlineShop.Models.CartItem>
+@{
+    ViewData["Title"] = "我的購物車";
+}
+
+<h2 class="mt-4 mb-4">🛒 我的購物車清單</h2>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-warning">您的購物車目前是空的喔！快去逛逛吧！</div>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>商品名稱</th>
+                <th>單價</th>
+                <th>數量</th>
+                <th>小計</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.ProductName</td>
+                    <td>@item.Price</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.SubTotal</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-end fw-bold">總計金額：</td>
+                <td class="fw-bold text-danger">@Model.Sum(x => x.SubTotal)</td>
+            </tr>
+        </tfoot>
+    </table>
+}
