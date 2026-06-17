@@ -1,9 +1,19 @@
 ﻿@model List<OnlineShop.Models.CartItem>
+@using OnlineShop.Models
 @{
     ViewData["Title"] = "我的購物車";
 }
 
 <h2 class="mt-4 mb-4">🛒 我的購物車清單</h2>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
 
 @if (Model.Count == 0)
 {
@@ -11,31 +21,183 @@
 }
 else
 {
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped align-middle">
         <thead class="table-dark">
             <tr>
+                <th class="text-center" style="width: 50px;">
+                    <input class="form-check-input" type="checkbox" id="select-all" checked>
+                </th>
                 <th>商品名稱</th>
                 <th>單價</th>
                 <th>數量</th>
                 <th>小計</th>
+                <th class="text-center">操作</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in Model)
             {
-                <tr>
+                <tr data-product-id="@item.ProductId">
+                    <td class="text-center">
+                        <input class="form-check-input item-checkbox" type="checkbox" value="@item.ProductId" checked>
+                    </td>
                     <td>@item.ProductName</td>
-                    <td>@item.Price</td>
-                    <td>@item.Quantity</td>
-                    <td>@item.SubTotal</td>
+                    <td class="product-price">@item.Price</td>
+                    <td>
+                        <input type="number" value="@item.Quantity" min="1" max="@item.Stock" class="form-control quantity-input" style="width: 100px;" />
+                    </td>
+                    <td class="subtotal">@item.SubTotal</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-danger btn-remove">🗑️ 刪除</button>
+                    </td>
                 </tr>
             }
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3" class="text-end fw-bold">總計金額：</td>
-                <td class="fw-bold text-danger">@Model.Sum(x => x.SubTotal)</td>
+                <td colspan="5" class="text-end fw-bold">勾選商品總計：</td>
+                <td id="total-amount" class="fw-bold text-danger">0</td>
             </tr>
         </tfoot>
     </table>
+
+    <div class="d-flex justify-content-between mt-4">
+        <form asp-action="ClearCart" method="post" onsubmit="return confirm('確定要狠心清空所有商品嗎？');">
+            <button type="submit" class="btn btn-outline-danger">🗑️ 清空購物車</button>
+        </form>
+
+        <form id="checkout-form" asp-action="Checkout" method="post">
+            <button type="button" id="btn-checkout" class="btn btn-success px-5">前往結帳 ➔</button>
+        </form>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            // 核心計算函數：只加總有打勾的商品
+            function calculateTotal() {
+                var total = 0;
+                $('.item-checkbox:checked').each(function () {
+                    var $row = $(this).closest('tr');
+                    total += parseFloat($row.find('.subtotal').text());
+                });
+                $('#total-amount').text(total);
+            }
+
+            // 一進畫面先算一次總金額
+            calculateTotal();
+
+            // 全選與取消全選功能 
+            $('#select-all').change(function () {
+                var isChecked = $(this).prop('checked');
+                $('.item-checkbox').prop('checked', isChecked);
+                calculateTotal(); // 狀態改變，重新算錢
+            });
+
+            // 個別打勾狀態改變時 
+            $('.item-checkbox').change(function () {
+                
+                if (!$(this).prop('checked')) {
+                    $('#select-all').prop('checked', false);
+                }
+
+                
+                if ($('.item-checkbox:checked').length === $('.item-checkbox').length) {
+                    $('#select-all').prop('checked', true);
+                }
+
+                calculateTotal(); 
+            });
+
+            // 數量變動功能 
+            $('.quantity-input').on('change input', function () {
+                var $row = $(this).closest('tr');
+                var productId = $row.data('product-id');
+                var price = parseFloat($row.find('.product-price').text());
+                var quantity = parseInt($(this).val());
+                var maxStock = parseInt($(this).attr('max'));
+
+                if (isNaN(quantity) || quantity < 1) {
+                    quantity = 1; $(this).val(1);
+                }
+                if (quantity > maxStock) {
+                    alert("購買數量不能超過庫存數量（" + maxStock + "個）！");
+                    quantity = maxStock; $(this).val(maxStock);
+                }
+
+                var subTotal = price * quantity;
+                $row.find('.subtotal').text(subTotal);
+
+                calculateTotal(); // 數量改變，小計變了，重新算一次打勾的總金額
+
+                $.ajax({
+                    url: '/Cart/UpdateQuantity',
+                    type: 'POST',
+                    data: { productId: productId, quantity: quantity },
+                    success: function (response) {
+                        if (!response.success) {
+                            alert(response.message); location.reload();
+                        }
+                    }
+                });
+            });
+
+            // 移除單一商品功能 
+            $('.btn-remove').click(function () {
+                if (!confirm('確定要將這個商品移出購物車嗎？')) return;
+
+                var $row = $(this).closest('tr');
+                var productId = $row.data('product-id');
+
+                $.ajax({
+                    url: '/Cart/RemoveItem',
+                    type: 'POST',
+                    data: { productId: productId },
+                    success: function (response) {
+                        if (response.success) {
+                            if (response.isEmpty) {
+                                location.reload();
+                            } else {
+                                $row.fadeOut(300, function() {
+                                    $(this).remove();
+                                    calculateTotal(); 
+                                });
+                            }
+                        } else {
+                            alert(response.message);
+                        }
+                    }
+                });
+            });
+
+            // 處理結帳按鈕：打包有勾選的商品送出 
+            $('#btn-checkout').click(function () {
+                var $form = $('#checkout-form');
+
+                
+                $form.find('input[name="selectedProductIds"]').remove();
+
+                var checkedCount = 0;
+
+                
+                $('.item-checkbox:checked').each(function () {
+                    var productId = $(this).val();
+                    $form.append('<input type="hidden" name="selectedProductIds" value="' + productId + '" />');
+                    checkedCount++;
+                });
+
+                if (checkedCount === 0) {
+                    alert('請至少勾選一項商品才能結帳喔！');
+                    return;
+                }
+
+                
+                $form.submit();
+            });
+
+        });
+    </script>
 }
