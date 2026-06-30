@@ -1,0 +1,79 @@
+﻿@model IEnumerable<OnlineShop.Models.Order>
+
+@{
+    ViewData["Title"] = "歷史訂單紀錄";
+}
+
+<div class="container mt-5" style="max-width: 850px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-secondary">📜 歷史訂單紀錄 <span class="badge bg-secondary fs-6"></span></h2>
+        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-primary">回商品列表</a>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center my-5 py-5 card shadow-sm border-0 bg-light">
+            <div class="card-body">
+                <span class="fs-1">🔍</span>
+                <h4 class="text-muted mt-3">目前尚無任何訂單紀錄</h4>
+                <p class="text-muted text-sm">快去商品列表選購商品並完成結帳吧！</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="accordion shadow-sm" id="orderAccordion">
+            @{
+                int count = 0;
+            }
+            @foreach (var order in Model)
+            {
+                count++;
+                string collapseId = "collapse" + count;
+                string headingId = "heading" + count;
+
+                <div class="accordion-item border-0 mb-3 shadow-sm rounded overflow-hidden">
+                    <h2 class="accordion-header" id="@headingId">
+                        <button class="accordion-button collapsed bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                            <div class="d-flex w-100 justify-content-between align-items-center pe-3 flex-wrap">
+                                <div>
+                                    <span class="text-primary fw-bold">#@order.OrderId</span>
+                                    <small class="text-muted ms-3">📅 @order.OrderDate.ToString("yyyy-MM-dd HH:mm:ss")</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="text-muted me-2">共 @order.Items.Sum(i => i.Quantity) 件商品</span>
+                                    <strong class="text-danger fs-5">NT$ @order.TotalAmount.ToString("N0")</strong>
+                                </div>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="@headingId" data-bs-parent="#orderAccordion">
+                        <div class="accordion-body bg-light">
+                            <table class="table table-responsive-sm table-centered mb-0 bg-white rounded shadow-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>商品名稱</th>
+                                        <th class="text-center" style="width: 120px;">單價</th>
+                                        <th class="text-center" style="width: 100px;">數量</th>
+                                        <th class="text-end" style="width: 150px;">小計</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in order.Items)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold text-dark">@item.ProductName</td>
+                                            <td class="text-center">NT$ @item.Price.ToString("N0")</td>
+                                            <td class="text-center">@item.Quantity</td>
+                                            <td class="text-end text-secondary fw-bold">NT$ @item.SubTotal.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,51 @@
+﻿@model IEnumerable<OnlineShop.Models.CartItem>
+
+@{
+    ViewData["Title"] = "結帳完成";
+    // 計算總金額
+    decimal totalAmount = Model.Sum(item => item.SubTotal);
+}
+
+<div class="container mt-5 text-center">
+    <div class="mb-4">
+        <h1 class="text-success fw-bold">🎉 結帳完成！</h1>
+        <h3 class="text-muted">感謝您的購買，您的訂單已成立。</h3>
+    </div>
+
+    <div class="card mx-auto shadow-sm border-0 bg-light" style="max-width: 600px;">
+        <div class="card-body text-start p-4">
+            <h5 class="card-title border-bottom pb-2 mb-3 fw-bold text-secondary">🧾 結算明細</h5>
+
+            <table class="table table-borderless mb-0">
+                <thead>
+                    <tr class="text-muted border-bottom">
+                        <th>商品名稱</th>
+                        <th class="text-center">數量</th>
+                        <th class="text-end">小計</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">@item.ProductName</td>
+                            <td class="text-center">@item.Quantity</td>
+                            <td class="text-end">NT$ @item.SubTotal.ToString("N0")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="border-top">
+                    <tr>
+                        <td colspan="2" class="text-end fw-bold pt-3">總計金額：</td>
+                        <td class="text-end text-danger fw-bold fs-4 pt-3">NT$ @totalAmount.ToString("N0")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-primary btn-lg shadow-sm">繼續選購商品</a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary btn-lg ms-3 shadow-sm">回首頁</a>
+    </div>
+</div>

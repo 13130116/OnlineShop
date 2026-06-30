@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +21,6 @@ namespace OnlineShop.Controllers
             _context = context;
         }
 
-        // GET: Products
         // GET: Products
         public async Task<IActionResult> Index(string searchString, int? pageNumber)
         {
@@ -78,15 +79,15 @@ namespace OnlineShop.Controllers
             return RedirectToAction("Details", new { id = comment.ProductId });
         }
 
-        // GET: Products/Create
+       
         public IActionResult Create()
         {
-            ViewData["CategoryId"] = 
+            ViewData["CategoryId"] =
                 new SelectList(_context.Category, "Id", "Name");
             return View();
         }
 
-        // POST: Products/Create
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Product product, IFormFile imageFile)
@@ -110,7 +111,7 @@ namespace OnlineShop.Controllers
             return View(product);
         }
 
-        // GET: Products/Edit/5
+        
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -126,21 +127,46 @@ namespace OnlineShop.Controllers
             return View(product);
         }
 
-        // POST: Products/Edit/5
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price")] Product product)
+        public async Task<IActionResult> Edit(int id, Product product, IFormFile imageFile)
         {
             if (id != product.Id)
             {
                 return NotFound();
             }
 
+            // 移除導覽屬性或圖片檔案的驗證，避免因為這些欄位沒填而報錯
+            ModelState.Remove("imageFile");
+            ModelState.Remove("Category");
+            ModelState.Remove("Comments");
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(product);
+                    
+                    var existingProduct = await _context.Product.FindAsync(id);
+                    if (existingProduct == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // 更新網頁上有修改的基本欄位
+                    existingProduct.Name = product.Name;
+                    existingProduct.Price = product.Price;
+                    existingProduct.Stock = product.Stock; // 把庫存更新補上
+
+                   
+                    if (imageFile != null && imageFile.Length > 0)
+                    {
+                        using var ms = new MemoryStream();
+                        await imageFile.CopyToAsync(ms);
+                        existingProduct.Image = ms.ToArray();
+                    }
+
+                    _context.Update(existingProduct);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -197,7 +223,6 @@ namespace OnlineShop.Controllers
             return _context.Product.Any(e => e.Id == id);
         }
 
-        // --- 這裡才是正確放入新增類別方法的位置 ---
         public IActionResult CreateCategory()
         {
             return View();
@@ -212,6 +237,5 @@ namespace OnlineShop.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-
-    } // <-- 這是 ProductsController 的結尾
-} // <-- 這是 namespace 的結尾
+    }
+}

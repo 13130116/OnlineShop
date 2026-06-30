@@ -33,6 +33,11 @@
                     </ul>
 
                     <ul class="navbar-nav">
+                        <li class="nav-item me-2">
+                            <a class="btn btn-outline-secondary fw-bold" asp-controller="Cart" asp-action="OrderHistory">
+                                📜 歷史訂單
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="btn btn-outline-success fw-bold" asp-controller="Cart" asp-action="Index">
                                 🛒 購物車
@@ -63,14 +68,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
         $(document).ready(function () {
-            
+
             var successMessage = '@TempData["SuccessMessage"]';
 
-            
+
             if (successMessage) {
                 toastr.options = {
-                    "positionClass": "toast-top-right", 
-                    "timeOut": "3000" 
+                    "positionClass": "toast-top-right",
+                    "timeOut": "3000"
                 };
                 toastr.success(successMessage);
             }
