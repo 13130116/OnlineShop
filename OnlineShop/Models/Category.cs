@@ -1,19 +1,15 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using OnlineShop.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace OnlineShop.Models
 {
     public class Category
     {
-        [Key]
         public int Id { get; set; }
 
         [Display(Name = "類別名稱")]
-        [Required(ErrorMessage = "請輸入類別名稱")]
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; }
 
-        // 關聯：一個類別會有多個商品
-        public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+        // 一個類別有很多商品
+        public List<Product> Products { get; set; }
     }
 }
