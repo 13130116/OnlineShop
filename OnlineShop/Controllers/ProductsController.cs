@@ -35,6 +35,15 @@ namespace OnlineShop.Controllers
 
             int pageSize = 5;
 
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                ViewData["Title"] = $"搜尋結果：{searchString}";
+            }
+            else
+            {
+                ViewData["Title"] = "商品列表";
+            }
+
             // 分頁
             return View(await PaginatedList<Product>.CreateAsync(
                 products.AsNoTracking(),

@@ -10,22 +10,31 @@
     <div class="col-md-6">
         <div class="card shadow p-4">
         <form asp-action="Create" enctype="multipart/form-data">
+                <p class="text-muted mb-3">
+                    <span class="text-danger">*</span> 表示必填欄位
+                </p>
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="form-group mb-3">
-                <label asp-for="Name" class="control-label">商品名稱</label>
+                    <label asp-for="Name" class="control-label">
+                        商品名稱 <span class="text-danger">*</span>
+                    </label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Price" class="control-label">商品價格</label>
+                    <label asp-for="Price" class="control-label">
+                        商品價格 <span class="text-danger">*</span>
+                    </label>
                 <input asp-for="Price" class="form-control" />
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="CategoryId" class="control-label">商品類別</label>
+                    <label asp-for="CategoryId" class="control-label">
+                        商品類別 <span class="text-danger">*</span>
+                    </label>
                 <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId">
                     <option value="">請選擇商品類別</option>
                 </select>
@@ -33,7 +42,9 @@
             </div>
 
             <div class="form-group mb-3">
-                <label class="control-label">商品圖片</label>
+                    <label class="control-label">
+                        商品圖片 <span class="text-danger">*</span>
+                    </label>
                 <input type="file" name="imageFile" class="form-control" accept="image/*" />
                     <span class="text-danger">@Html.ValidationMessage("Image")</span>
             </div>
