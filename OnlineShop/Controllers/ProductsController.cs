@@ -60,8 +60,9 @@ namespace OnlineShop.Controllers
             }
 
             var product = await _context.Product
-                .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt))
-                .FirstOrDefaultAsync(m => m.Id == id);
+            .Include(p => p.Comments.OrderByDescending(c => c.CreatedAt))
+            .Include(p => p.ProductVariants)
+            .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {
                 return NotFound();
@@ -88,7 +89,28 @@ namespace OnlineShop.Controllers
             return RedirectToAction("Details", new { id = comment.ProductId });
         }
 
-       
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddRestockNotification(int productVariantId, int productId)
+        {
+            var notification = new RestockNotification
+            {
+                ProductVariantId = productVariantId,
+                UserId = "Guest",      // 之後如果有會員登入可以改成真正會員ID
+                RequestDate = DateTime.Now,
+                IsNotified = false
+            };
+
+            _context.RestockNotifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = "已成功登記到貨通知！";
+
+            return RedirectToAction("Details", new { id = productId });
+        }
+
+
         public IActionResult Create()
         {
             ViewData["CategoryId"] =
@@ -231,11 +253,38 @@ namespace OnlineShop.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> NotifyRestock(int variantId)
+        {
+            var variant = await _context.ProductVariants.FindAsync(variantId);
+
+            if (variant == null)
+            {
+                return NotFound();
+            }
+
+            if (variant.Stock > 0)
+            {
+                var notifications = await _context.RestockNotifications
+                    .Where(r => r.ProductVariantId == variantId && !r.IsNotified)
+                    .ToListAsync();
+
+                foreach (var item in notifications)
+                {
+                    item.IsNotified = true;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok();
+        }
+
         private bool ProductExists(int id)
         {
             return _context.Product.Any(e => e.Id == id);
         }
-
         public IActionResult CreateCategory()
         {
             return View();
