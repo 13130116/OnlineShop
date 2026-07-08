@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using OnlineShop.Models;
 
 namespace OnlineShop.Data
 {
-    public class OnlineShopContext : DbContext
+    public class OnlineShopContext : IdentityDbContext<ApplicationUser>
     {
         public OnlineShopContext(DbContextOptions<OnlineShopContext> options)
             : base(options)

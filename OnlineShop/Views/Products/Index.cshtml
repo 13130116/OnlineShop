@@ -26,9 +26,12 @@
     </div>
 }
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+@if (User.IsInRole("Admin"))
+{
+    <p>
+        <a asp-action="Create" class="btn btn-primary">新增商品</a>
+    </p>
+}
 
 <form asp-action="Index" method="get">
     <div class="mb-3">
@@ -81,9 +84,20 @@
                         var defaultQty = availableStock > 0 ? 1 : 0;
                     }
 
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Id">編輯</a>
+                        <text> | </text>
+                    }
+
+                    <a asp-action="Details" asp-route-id="@item.Id">詳情</a>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <text> | </text>
+                        <a asp-action="Delete" asp-route-id="@item.Id">刪除</a>
+                    }
+
 
                     <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-inline-flex align-items-center ms-2">
                         <input type="hidden" name="productId" value="@item.Id" />
