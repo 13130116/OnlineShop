@@ -22,9 +22,52 @@ namespace OnlineShop.Controllers
         // GET: Categories
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Category.ToListAsync());
+            return View(await _context.Category
+                .OrderBy(c => c.SortOrder)
+                .ToListAsync());
         }
 
+        public async Task<IActionResult> MoveUp(int id)
+        {
+            var category = await _context.Category.FindAsync(id);
+            if (category == null) return NotFound();
+
+            var previous = await _context.Category
+                .Where(c => c.SortOrder < category.SortOrder)
+                .OrderByDescending(c => c.SortOrder)
+                .FirstOrDefaultAsync();
+
+            if (previous != null)
+            {
+                int temp = category.SortOrder;
+                category.SortOrder = previous.SortOrder;
+                previous.SortOrder = temp;
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> MoveDown(int id)
+        {
+            var category = await _context.Category.FindAsync(id);
+            if (category == null) return NotFound();
+
+            var next = await _context.Category
+                .Where(c => c.SortOrder > category.SortOrder)
+                .OrderBy(c => c.SortOrder)
+                .FirstOrDefaultAsync();
+
+            if (next != null)
+            {
+                int temp = category.SortOrder;
+                category.SortOrder = next.SortOrder;
+                next.SortOrder = temp;
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
         // GET: Categories/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -54,10 +97,22 @@ namespace OnlineShop.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Category category)
+        public async Task<IActionResult> Create([Bind("Id,Name")] Category category, IFormFile imageFile)
         {
             if (ModelState.IsValid)
             {
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    using var ms = new MemoryStream();
+                    await imageFile.CopyToAsync(ms);
+                    category.Image = ms.ToArray();
+                }
+                if (category.SortOrder == 0)
+                {
+                    category.SortOrder = _context.Category.Any()
+                        ? _context.Category.Max(c => c.SortOrder) + 1
+                        : 1;
+                }
                 _context.Add(category);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

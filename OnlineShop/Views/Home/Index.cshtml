@@ -1,8 +1,42 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<OnlineShop.Models.Category>
+
+@{
+    ViewData["Title"] = "首頁";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center mb-5">
+    <h1 class="fw-bold">歡迎來到 愛瘋屋</h1>
+    <p class="text-muted fs-5">請挑選您的商品：</p>
+</div>
+
+<div class="row justify-content-center">
+    @foreach (var category in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100 text-center">
+
+                @if (category.Image != null)
+                {
+                    var base64 = Convert.ToBase64String(category.Image);
+                    var imgSrc = $"data:image/png;base64,{base64}";
+
+                    <img src="@imgSrc"
+                         class="card-img-top"
+                         style="height:300px; object-fit:cover;" />
+                }
+
+                <div class="card-body">
+                    <h4 class="card-title">@category.Name</h4>
+
+                    <a asp-controller="Products"
+                       asp-action="Index"
+                       asp-route-categoryId="@category.Id"
+                       class="btn btn-primary">
+                        查看商品
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    }
 </div>

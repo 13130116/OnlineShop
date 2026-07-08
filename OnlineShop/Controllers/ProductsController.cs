@@ -36,6 +36,15 @@ namespace OnlineShop.Controllers
 
             int pageSize = 5;
 
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                ViewData["Title"] = $"搜尋結果：{searchString}";
+            }
+            else
+            {
+                ViewData["Title"] = "商品列表";
+            }
+
             // 分頁
             return View(await PaginatedList<Product>.CreateAsync(
                 products.AsNoTracking(),
@@ -97,12 +106,16 @@ namespace OnlineShop.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (imageFile != null)
+                if (imageFile == null || imageFile.Length == 0)
                 {
-                    using var ms = new MemoryStream();
-                    await imageFile.CopyToAsync(ms);
-                    product.Image = ms.ToArray();
+                    ModelState.AddModelError("Image", "請上傳商品圖片");
+                    ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", product.CategoryId);
+                    return View(product);
                 }
+
+                using var ms = new MemoryStream();
+                await imageFile.CopyToAsync(ms);
+                product.Image = ms.ToArray();
 
                 _context.Add(product);
                 await _context.SaveChangesAsync();

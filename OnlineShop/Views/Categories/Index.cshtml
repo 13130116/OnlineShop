@@ -7,11 +7,14 @@
 <h1>Index</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-success">
+        ＋ 新增類別
+    </a>
 </p>
 <table class="table">
     <thead>
         <tr>
+            <th>類別圖片</th>
             <th>
                 @Html.DisplayNameFor(model => model.Name)
             </th>
@@ -21,13 +24,42 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
+                <td>
+                    @if (item.Image != null)
+                    {
+                        var base64 = Convert.ToBase64String(item.Image);
+                        var imgSrc = $"data:image/png;base64,{base64}";
+
+                        <img src="@imgSrc"
+                             width="120"
+                             class="img-thumbnail" />
+                    }
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a asp-action="MoveUp" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">↑</a>
+                    <a asp-action="MoveDown" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">↓</a>
+
+                    <a asp-action="Edit"
+                       asp-route-id="@item.Id"
+                       class="btn btn-sm btn-warning">
+                        編輯
+                    </a>
+
+                    <a asp-action="Details"
+                       asp-route-id="@item.Id"
+                       class="btn btn-sm btn-info text-white">
+                        詳情
+                    </a>
+
+                    <a asp-action="Delete"
+                       asp-route-id="@item.Id"
+                       class="btn btn-sm btn-danger">
+                        刪除
+                    </a>
             </td>
         </tr>
 }

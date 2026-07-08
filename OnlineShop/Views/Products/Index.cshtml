@@ -4,12 +4,17 @@
 @using OnlineShop.Models
 
 @{
-    ViewData["Title"] = "Index";
+    var title = ViewData["Title"] ?? "商品列表";
     
     var cart = Context.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
 }
 
-<h1>Index</h1>
+<div class="text-center mb-5">
+    <h1 class="display-5 fw-bold">
+        📦 @title
+    </h1>
+    
+</div>
 
 @if (TempData["SuccessMessage"] != null)
 {
@@ -26,28 +31,40 @@
     </div>
 }
 
-@if (User.IsInRole("Admin"))
-{
-    <p>
-        <a asp-action="Create" class="btn btn-primary">新增商品</a>
-    </p>
-}
+    <<div class="row justify-content-center mb-4">
 
-<form asp-action="Index" method="get">
-    <div class="mb-3">
-        <input type="text"
-               name="searchString"
-               class="form-control"
-               placeholder="請輸入商品名稱">
+    <div class="col-lg-8">
 
-        <button type="submit"
-                class="btn btn-primary mt-2">
-            搜尋
-        </button>
+        <form asp-action="Index" method="get">
+
+            <div class="input-group shadow-sm">
+
+                <input type="text"
+                       name="searchString"
+                       class="form-control"
+                       placeholder="🔍 請輸入商品名稱"
+                       value="@Context.Request.Query["searchString"]" />
+
+                <button type="submit" class="btn btn-primary">
+                    搜尋
+                </button>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Create" class="btn btn-success ms-4">
+                            ＋ 新增商品
+                        </a>
+                    }
+
+            </div>
+
+        </form>
+
     </div>
-</form>
 
-<table class="table">
+</div>
+
+<table class="table table-hover table-bordered align-middle shadow-sm">
     <thead>
         <tr>
             <th>商品圖片</th>
@@ -86,18 +103,21 @@
 
                     @if (User.IsInRole("Admin"))
                     {
-                        <a asp-action="Edit" asp-route-id="@item.Id">編輯</a>
-                        <text> | </text>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">
+                            編輯
+                        </a>
                     }
 
-                    <a asp-action="Details" asp-route-id="@item.Id">詳情</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
+                        詳情
+                    </a>
 
                     @if (User.IsInRole("Admin"))
                     {
-                        <text> | </text>
-                        <a asp-action="Delete" asp-route-id="@item.Id">刪除</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                            刪除
+                        </a>
                     }
-
 
                     <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-inline-flex align-items-center ms-2">
                         <input type="hidden" name="productId" value="@item.Id" />

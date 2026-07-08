@@ -1,21 +1,29 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OnlineShop.Data;
 using OnlineShop.Models;
+using System.Diagnostics;
 
 namespace OnlineShop.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly OnlineShopContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, OnlineShopContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var categories = await _context.Category
+                .OrderBy(c => c.SortOrder)
+                .ToListAsync();
+
+            return View(categories);
         }
 
         public IActionResult Privacy()
