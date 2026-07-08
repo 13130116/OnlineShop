@@ -22,7 +22,7 @@
 
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">首頁</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="Index">商品列表</a>
@@ -37,8 +37,39 @@
                                 </span>
                             </li>
 
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                       asp-controller="Consultations"
+                                       asp-action="Index">
+                                        諮詢管理
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                       asp-controller="Consultations"
+                                       asp-action="Create">
+                                        線上諮詢
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                       asp-controller="Consultations"
+                                       asp-action="MyConsultations">
+                                        我的諮詢
+                                    </a>
+                                </li>
+                            }
+
                             <li class="nav-item">
-                                <a class="nav-link text-danger" asp-controller="Account" asp-action="Logout">
+                                <a class="nav-link text-danger"
+                                   asp-controller="Account"
+                                   asp-action="Logout">
                                     登出
                                 </a>
                             </li>

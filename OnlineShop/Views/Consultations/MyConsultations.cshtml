@@ -1,0 +1,66 @@
+﻿@model IEnumerable<OnlineShop.Models.Consultation>
+@using System.Text.RegularExpressions
+
+@{
+    ViewData["Title"] = "我的諮詢";
+}
+
+<h1>我的諮詢</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                問題內容
+            </th>
+
+            <th>
+                管理員回覆
+            </th>
+
+            <th>
+                發問時間
+            </th>
+
+            <th>
+                狀態
+            </th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.Question
+                </td>
+
+                <td>
+                    @if (string.IsNullOrEmpty(item.Answer))
+                    {
+                        <span>尚未回覆</span>
+                    }
+                    else
+                    {
+                        var answer = Regex.Replace(
+                        item.Answer,
+                        @"(https?://[^\s]+)",
+                        "<a href=\"$1\" target=\"_blank\">$1</a>"
+                        );
+
+                        @Html.Raw(answer)
+                    }
+                </td>
+
+                <td>
+                    @item.CreatedAt
+                </td>
+
+                <td>
+                    @(item.IsReplied ? "已回覆" : "等待回覆")
+                </td>
+            </tr>
+                }
+    </tbody>
+</table>
