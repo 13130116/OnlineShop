@@ -35,5 +35,6 @@ namespace OnlineShop.Models
         // 導覽屬性
         public Category Category { get; set; }
         public List<Comment> Comments { get; set; } = new List<Comment>();
+        public virtual ICollection<ProductVariant> ProductVariants { get; set; } = new List<ProductVariant>();
     }
 }

@@ -1,11 +1,13 @@
-﻿using System; 
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OnlineShop.Data;       
+using OnlineShop.Helpers;
+using OnlineShop.Models;
+using System; 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using OnlineShop.Data;       
-using OnlineShop.Models;
-using OnlineShop.Helpers;
+
 
 namespace OnlineShop.Controllers
 {
@@ -28,43 +30,60 @@ namespace OnlineShop.Controllers
 
         // 2. 加入購物車邏輯
         [HttpPost]
-        public IActionResult AddToCart(int productId, string name, decimal price, int stock, int quantity = 1)
+        public async Task<IActionResult> AddToCart(int productId, int variantId, int quantity = 1)
         {
-            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
-            var existingItem = cart.FirstOrDefault(c => c.ProductId == productId);
+            var variant = await _context.ProductVariants
+                .Include(v => v.Product)
+                .FirstOrDefaultAsync(v => v.Id == variantId);
 
-            if (stock < 1)
+            if (variant == null)
             {
-                TempData["ErrorMessage"] = $"抱歉，【{name}】已售完！";
-                return RedirectToAction("Index", "Products");
+                TempData["ErrorMessage"] = "找不到商品規格！";
+                return RedirectToAction("Details", "Products", new { id = productId });
             }
+
+            if (variant.Stock < quantity)
+            {
+                TempData["ErrorMessage"] = $"抱歉，【{variant.Product?.Name} {variant.Color} {variant.Capacity}】庫存不足！";
+                return RedirectToAction("Details", "Products", new { id = productId });
+            }
+
+            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+
+            var existingItem = cart.FirstOrDefault(c => c.ProductVariantId == variantId);
 
             if (existingItem != null)
             {
-                if (existingItem.Quantity + quantity > stock)
+                if (existingItem.Quantity + quantity > variant.Stock)
                 {
-                    TempData["ErrorMessage"] = $"庫存不足！購物車內已有 {existingItem.Quantity} 個，最多只能再加 {stock - existingItem.Quantity} 個喔！";
-                    return RedirectToAction("Index", "Products");
+                    TempData["ErrorMessage"] = "購物車數量已超過此規格庫存！";
+                    return RedirectToAction("Details", "Products", new { id = productId });
                 }
 
                 existingItem.Quantity += quantity;
             }
             else
             {
-                if (quantity > stock)
+                cart.Add(new CartItem
                 {
-                    TempData["ErrorMessage"] = $"庫存不足！這項商品最多只能買 {stock} 個喔！";
-                    return RedirectToAction("Index", "Products");
-                }
-
-                cart.Add(new CartItem { ProductId = productId, ProductName = name, Price = price, Quantity = quantity, Stock = stock });
+                    ProductId = productId,
+                    ProductVariantId = variantId,
+                    ProductName = $"{variant.Product?.Name} - {variant.Color} / {variant.Capacity}",
+                    Price = variant.Price,
+                    Quantity = quantity,
+                    Stock = variant.Stock,
+                    Color = variant.Color,
+                    Capacity = variant.Capacity
+                });
             }
 
             HttpContext.Session.SetObjectAsJson("Cart", cart);
-            TempData["SuccessMessage"] = $"太棒了！已成功將 {quantity} 份【{name}】加入購物車！🛒";
 
-            return RedirectToAction("Index", "Products");
+            TempData["SuccessMessage"] = "已加入購物車！";
+
+            return RedirectToAction("Details", "Products", new { id = productId });
         }
+
 
         // 3. 即時更新購物車數量
         [HttpPost]
@@ -129,14 +148,23 @@ namespace OnlineShop.Controllers
             var checkoutItems = cart.Where(c => selectedProductIds.Contains(c.ProductId)).ToList();
 
             // 去資料庫把真正商品的庫存扣掉！
+            // 去資料庫扣 ProductVariant 的庫存
             foreach (var item in checkoutItems)
             {
-                var product = await _context.Product.FindAsync(item.ProductId);
-                if (product != null)
+                var variant = await _context.ProductVariants.FindAsync(item.ProductVariantId);
+
+                if (variant != null)
                 {
-                    // 扣除庫存 (防呆：確保庫存不會扣到變成負數)
-                    product.Stock = (product.Stock >= item.Quantity) ? (product.Stock - item.Quantity) : 0;
-                    _context.Update(product);
+                    if (variant.Stock >= item.Quantity)
+                    {
+                        variant.Stock -= item.Quantity;
+                    }
+                    else
+                    {
+                        variant.Stock = 0;
+                    }
+
+                    _context.Update(variant);
                 }
             }
             // 儲存進資料庫
