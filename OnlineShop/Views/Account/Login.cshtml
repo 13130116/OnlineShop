@@ -1,0 +1,14 @@
+﻿<h2>登入</h2>
+
+<form method="post">
+    <input type="text" name="email" placeholder="Email" />
+    <br />
+    <input type="password" name="password" placeholder="Password" />
+    <br />
+    <button type="submit">登入</button>
+</form>
+
+@if (ViewBag.Error != null)
+{
+    <p style="color:red">@ViewBag.Error</p>
+}

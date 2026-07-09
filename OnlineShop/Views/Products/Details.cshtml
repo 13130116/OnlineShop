@@ -1,13 +1,13 @@
 ﻿@model OnlineShop.Models.Product
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "商品詳情";
 }
 
-<h1>Details</h1>
+<h1>商品詳情</h1>
 
 <div>
-    <h4>Product</h4>
+    <h4>商品資訊</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -25,8 +25,17 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model?.Id">
+            編輯商品
+        </a>
+        <span>|</span>
+    }
+
+    <a asp-action="Index">
+        返回商品列表
+    </a>
 </div>
 
 
@@ -148,4 +157,6 @@ else
     <button type="submit" class="btn btn-primary mt-2">
         送出留言
     </button>
+
 </form>
+

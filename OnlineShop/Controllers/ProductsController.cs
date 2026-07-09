@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OnlineShop.Data;
 using OnlineShop.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace OnlineShop.Controllers
 {
@@ -88,7 +89,7 @@ namespace OnlineShop.Controllers
 
             return RedirectToAction("Details", new { id = comment.ProductId });
         }
-
+        
         
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -111,6 +112,7 @@ namespace OnlineShop.Controllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewData["CategoryId"] =
@@ -118,7 +120,8 @@ namespace OnlineShop.Controllers
             return View();
         }
 
-        
+
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Product product, IFormFile imageFile)
@@ -146,7 +149,8 @@ namespace OnlineShop.Controllers
             return View(product);
         }
 
-        
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -162,7 +166,8 @@ namespace OnlineShop.Controllers
             return View(product);
         }
 
-        
+
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Product product, IFormFile imageFile)
@@ -220,7 +225,9 @@ namespace OnlineShop.Controllers
             return View(product);
         }
 
+
         // GET: Products/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -239,6 +246,7 @@ namespace OnlineShop.Controllers
         }
 
         // POST: Products/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -285,11 +293,14 @@ namespace OnlineShop.Controllers
         {
             return _context.Product.Any(e => e.Id == id);
         }
+
+        [Authorize(Roles = "Admin")]
         public IActionResult CreateCategory()
         {
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCategory(Category category)

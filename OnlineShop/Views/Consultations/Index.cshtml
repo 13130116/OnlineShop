@@ -1,0 +1,70 @@
+﻿@model IEnumerable<OnlineShop.Models.Consultation>
+@using System.Text.RegularExpressions
+
+@{
+    ViewData["Title"] = "諮詢管理";
+}
+
+<h1>諮詢管理</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.UserId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Question)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Answer)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsReplied)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Question)
+            </td>
+                <td>
+                    @if (string.IsNullOrEmpty(item.Answer))
+                    {
+                        <span>尚未回覆</span>
+                    }
+                    else
+                    {
+                        var answer = Regex.Replace(
+                        item.Answer,
+                        @"(https?://[^\s]+)",
+                        "<a href=\"$1\" target=\"_blank\">$1</a>"
+                        );
+
+                        @Html.Raw(answer)
+                    }
+                </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsReplied)
+            </td>
+            <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">回覆</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">詳細</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">刪除</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

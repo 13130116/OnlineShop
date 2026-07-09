@@ -1,0 +1,50 @@
+﻿@model OnlineShop.Models.Consultation
+
+@{
+    ViewData["Title"] = "諮詢內容";
+}
+
+<h1>諮詢內容</h1>
+
+<div>
+    <h4>詳細資料</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.UserId)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.UserId)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Question)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Question)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Answer)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Answer)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CreatedAt)
+        </dt>
+        <dd class = "col-sm-10">
+            @Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")
+        </dd>
+        <dt class = "col-sm-2">
+            @(Model.IsReplied ? "已回覆" : "未回覆")
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.IsReplied)
+        </dd>
+    </dl>
+</div>
+<div>
+ 
+    <a asp-action="Index" class="btn btn-secondary">
+        返回列表
+    </a>
+</div>

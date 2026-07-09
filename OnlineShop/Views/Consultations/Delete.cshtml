@@ -1,0 +1,55 @@
+﻿@model OnlineShop.Models.Consultation
+
+@{
+    ViewData["Title"] = "刪除諮詢";
+}
+
+<h1>刪除諮詢</h1>
+
+<h3>確定要刪除這筆諮詢嗎？</h3>
+<div>
+    <h4>諮詢內容</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.UserId)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.UserId)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Question)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Question)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Answer)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Answer)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CreatedAt)
+        </dt>
+        <dd class = "col-sm-10">
+            @Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.IsReplied)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.IsReplied)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+            <input type="submit" value="確認刪除" class="btn btn-danger" />
+    </form>
+
+    <div class="mt-3">
+        <a asp-action="Index">返回列表</a>
+    </div>
+
+</div>

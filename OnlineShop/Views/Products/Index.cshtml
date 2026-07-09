@@ -31,7 +31,7 @@
     </div>
 }
 
-<<div class="row justify-content-center mb-4">
+    <<div class="row justify-content-center mb-4">
 
     <div class="col-lg-8">
 
@@ -49,9 +49,12 @@
                     搜尋
                 </button>
 
-                <a asp-action="Create" class="btn btn-success ms-4">
-                    ＋ 新增商品
-                </a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Create" class="btn btn-success ms-4">
+                            ＋ 新增商品
+                        </a>
+                    }
 
             </div>
 
@@ -98,9 +101,23 @@
                         var defaultQty = availableStock > 0 ? 1 : 0;
                     }
 
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">編輯</a>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">詳情</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">刪除</a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">
+                            編輯
+                        </a>
+                    }
+
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
+                        詳情
+                    </a>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                            刪除
+                        </a>
+                    }
 
                     <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-inline-flex align-items-center ms-2">
                         <input type="hidden" name="productId" value="@item.Id" />
