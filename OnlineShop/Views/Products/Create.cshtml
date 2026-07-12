@@ -4,57 +4,66 @@
     ViewData["Title"] = "Create";
 }
 
+<link rel="stylesheet" href="~/lib/ckeditor5/ckeditor5.css" />
+<link rel="stylesheet" href="~/lib/ckeditor5/ckeditor5-content.css" />
+
 <h2 class="text-center mb-4">新增商品</h2>
 
 <div class="row justify-content-center">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <div class="card shadow p-4">
-        <form asp-action="Create" enctype="multipart/form-data">
+            <form asp-action="Create" enctype="multipart/form-data">
                 <p class="text-muted mb-3">
                     <span class="text-danger">*</span> 表示必填欄位
                 </p>
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <div class="form-group mb-3">
+                <div class="form-group mb-3">
                     <label asp-for="Name" class="control-label">
                         商品名稱 <span class="text-danger">*</span>
                     </label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
 
-            <div class="form-group mb-3">
+                <div class="form-group mb-3">
                     <label asp-for="Price" class="control-label">
                         商品價格 <span class="text-danger">*</span>
                     </label>
-                <input asp-for="Price" class="form-control" />
-                <span asp-validation-for="Price" class="text-danger"></span>
-            </div>
+                    <input asp-for="Price" class="form-control" />
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
 
-            <div class="form-group mb-3">
+                <div class="form-group mb-3">
                     <label asp-for="CategoryId" class="control-label">
                         商品類別 <span class="text-danger">*</span>
                     </label>
-                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId">
-                    <option value="">請選擇商品類別</option>
-                </select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
+                    <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId">
+                        <option value="">請選擇商品類別</option>
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
 
-            <div class="form-group mb-3">
+                <div class="form-group mb-3">
                     <label class="control-label">
                         商品圖片 <span class="text-danger">*</span>
                     </label>
-                <input type="file" name="imageFile" class="form-control" accept="image/*" />
+                    <input type="file" name="imageFile" class="form-control" accept="image/*" />
                     <span class="text-danger">@Html.ValidationMessage("Image")</span>
-            </div>
+                </div>
 
-            <div class="form-group">
+                <div class="form-group mb-3">
+                    <label asp-for="Description" class="control-label">商品描述</label>
+                    <textarea asp-for="Description" id="product-editor" class="form-control" rows="6"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
                     <input type="submit"
                            value="新增商品"
                            class="btn btn-primary w-100" />
-            </div>
-        </form>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -67,4 +76,47 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script src="~/lib/ckeditor5/ckeditor5.umd.js"></script>
+    <script src="~/lib/ckeditor5/translations/zh-tw.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const editorEngine = window.CKEDITOR || window.CKEditor5;
+
+            if (!editorEngine) {
+                console.error("無法載入本地 CKEditor 主程式，請確認 wwwroot/lib/ckeditor5 檔案存在。");
+                return;
+            }
+
+            const { ClassicEditor, Essentials, Paragraph, Heading, Bold, Italic, Font, Alignment, Table, TableToolbar } = editorEngine;
+
+            ClassicEditor
+                .create(document.querySelector('#product-editor'), {
+                    licenseKey: 'GPL',
+                    config: {
+                        distributionChannel: 'npm'
+                    },
+
+                    plugins: [ Essentials, Paragraph, Heading, Bold, Italic, Font, Alignment, Table, TableToolbar ],
+                    language: 'zh-tw', 
+                    toolbar: [
+                        'heading', '|',
+                        'bold', 'italic', '|',
+                        'fontColor', 'fontBackgroundColor', 'alignment', '|',
+                        'insertTable', '|',
+                        'undo', 'redo'
+                    ],
+                    table: {
+                        contentToolbar: [ 'tableColumn', 'tableRow', 'mergeTableCells' ]
+                    }
+                })
+                .then(editor => {
+                    console.log("官網版 CKEditor 5 完美解鎖並載入成功！");
+                })
+                .catch(error => {
+                    console.error("編輯器初始化失敗：", error);
+                });
+        });
+    </script>
 }
