@@ -1,19 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OnlineShop.Data;       
+using OnlineShop.Data;
 using OnlineShop.Helpers;
 using OnlineShop.Models;
-using System; 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 
 namespace OnlineShop.Controllers
 {
     public class CartController : Controller
     {
-        // 1. 新增資料庫連線 (讓購物車能跟資料庫溝通扣庫存)
         private readonly OnlineShopContext _context;
 
         public CartController(OnlineShopContext context)
@@ -28,7 +26,7 @@ namespace OnlineShop.Controllers
             return View(cart);
         }
 
-        // 2. 加入購物車邏輯
+        // 2. 加入購物車邏輯 (完美保留你的 ProductVariant 邏輯)
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int variantId, int quantity = 1)
         {
@@ -49,7 +47,6 @@ namespace OnlineShop.Controllers
             }
 
             var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
-
             var existingItem = cart.FirstOrDefault(c => c.ProductVariantId == variantId);
 
             if (existingItem != null)
@@ -78,9 +75,7 @@ namespace OnlineShop.Controllers
             }
 
             HttpContext.Session.SetObjectAsJson("Cart", cart);
-
             TempData["SuccessMessage"] = "已加入購物車！";
-
             return RedirectToAction("Details", "Products", new { id = productId });
         }
 
@@ -119,7 +114,6 @@ namespace OnlineShop.Controllers
             {
                 cart.Remove(item);
                 HttpContext.Session.SetObjectAsJson("Cart", cart);
-
                 return Json(new { success = true, isEmpty = !cart.Any() });
             }
 
@@ -134,9 +128,10 @@ namespace OnlineShop.Controllers
             return RedirectToAction("Index");
         }
 
-        // 6. 處理部分商品勾選結帳 
+
+        // 接收購物車頁面勾選的商品，並準備跳轉
         [HttpPost]
-        public async Task<IActionResult> Checkout(List<int> selectedProductIds)
+        public IActionResult Checkout(List<int> selectedProductIds)
         {
             if (selectedProductIds == null || !selectedProductIds.Any())
             {
@@ -144,60 +139,100 @@ namespace OnlineShop.Controllers
                 return RedirectToAction("Index");
             }
 
-            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
-            var checkoutItems = cart.Where(c => selectedProductIds.Contains(c.ProductId)).ToList();
+            // 把勾選的商品 ID 暫存在 Session，準備帶去下一頁
+            HttpContext.Session.SetObjectAsJson("SelectedForCheckout", selectedProductIds);
 
-            // 去資料庫把真正商品的庫存扣掉！
-            // 去資料庫扣 ProductVariant 的庫存
+            return RedirectToAction("CheckoutInfo");
+        }
+
+        // 步驟 6-2: 檢查登入狀態，並顯示「資料填寫表單」
+        [HttpGet]
+        public IActionResult CheckoutInfo()
+        {
+            // 確認有沒有帶過來的結帳商品
+            var selectedIds = HttpContext.Session.GetObjectFromJson<List<int>>("SelectedForCheckout");
+            if (selectedIds == null || !selectedIds.Any()) return RedirectToAction("Index");
+
+            // 關鍵任務：訪客寬鬆模式 (未登入強制導向 Login，並帶上 ReturnUrl)
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                TempData["ErrorMessage"] = "結帳前請先登入或註冊會員喔！";
+                // 這裡會跳轉到負責人 5 的登入頁面，登入後會自動導回來這頁
+                return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("CheckoutInfo", "Cart") });
+            }
+
+            // 若已登入，抓出購物車內被選中的商品，傳給前端顯示明細
+            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+            var checkoutItems = cart.Where(c => selectedIds.Contains(c.ProductId)).ToList();
+
+            ViewBag.CartItems = checkoutItems;
+            return View(new CheckoutViewModel()); // 準備空的表單給使用者填寫
+        }
+
+        // 接收使用者填寫的表單，正式扣庫存並送出訂單
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitOrder(CheckoutViewModel model)
+        {
+            var selectedIds = HttpContext.Session.GetObjectFromJson<List<int>>("SelectedForCheckout");
+            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+            var checkoutItems = cart.Where(c => selectedIds != null && selectedIds.Contains(c.ProductId)).ToList();
+
+            // 防呆：如果表單沒填好，退回原頁面並顯示紅字錯誤
+            if (!ModelState.IsValid || !checkoutItems.Any())
+            {
+                ViewBag.CartItems = checkoutItems;
+                return View("CheckoutInfo", model);
+            }
+
+            // 去資料庫把真正商品的庫存扣掉！(保留你的 ProductVariant 邏輯)
             foreach (var item in checkoutItems)
             {
                 var variant = await _context.ProductVariants.FindAsync(item.ProductVariantId);
-
                 if (variant != null)
                 {
-                    if (variant.Stock >= item.Quantity)
-                    {
-                        variant.Stock -= item.Quantity;
-                    }
-                    else
-                    {
-                        variant.Stock = 0;
-                    }
-
+                    variant.Stock = (variant.Stock >= item.Quantity) ? (variant.Stock - item.Quantity) : 0;
                     _context.Update(variant);
                 }
             }
-            // 儲存進資料庫
             await _context.SaveChangesAsync();
 
-            // 打包存進「歷史訂單 Session」
+            // 將表單資訊一起打包存進「歷史訂單 Session」
             var orderHistory = HttpContext.Session.GetObjectFromJson<List<Order>>("OrderHistory") ?? new List<Order>();
             var newOrder = new Order
             {
-                // 使用目前時間做為不重複的訂單編號
                 OrderId = "ORD" + DateTime.Now.ToString("yyyyMMddHHmmss"),
                 OrderDate = DateTime.Now,
-                Items = checkoutItems
+                Items = checkoutItems,
+                // 把 model 裡的資料存進訂單裡
+                FullName = model.FullName,
+                Phone = model.Phone,
+                Address = model.Address,
+                PaymentMethod = model.PaymentMethod,
+                // 🌟 新增：自動抓取目前登入使用者的帳號名稱 (Email)
+                Email = User.Identity?.Name
             };
             orderHistory.Add(newOrder);
-            HttpContext.Session.SetObjectAsJson("OrderHistory", orderHistory); // 存回 Session
+            HttpContext.Session.SetObjectAsJson("OrderHistory", orderHistory);
 
-            // 把已經結帳的商品從購物車裡刪掉 (買完就該清空囉！)
-            cart.RemoveAll(c => selectedProductIds.Contains(c.ProductId));
+            // 把已經結帳的商品從購物車與暫存裡刪掉
+            cart.RemoveAll(c => selectedIds.Contains(c.ProductId));
             HttpContext.Session.SetObjectAsJson("Cart", cart);
+            HttpContext.Session.Remove("SelectedForCheckout");
 
-            return View("CheckoutSummary", checkoutItems);
+            TempData["SuccessMessage"] = $"感謝 {model.FullName} 的訂購！訂單已正式成立。";
+
+            // 把整張「新訂單」(newOrder) 傳給結帳完成頁面，讓畫面可以印出姓名地址
+            return View("CheckoutSummary", newOrder);
         }
 
-        // 新增：顯示歷史訂單紀錄頁面
+
+
+        // 7. 顯示歷史訂單紀錄頁面
         public IActionResult OrderHistory()
         {
-            // 從 Session 撈出所有購買過的訂單，如果沒有就給空清單
             var orderHistory = HttpContext.Session.GetObjectFromJson<List<Order>>("OrderHistory") ?? new List<Order>();
-
-            // 讓最新的訂單排在最上面顯示，並轉成 List 傳給 View
             var sortedOrders = orderHistory.OrderByDescending(o => o.OrderDate).ToList();
-
             return View(sortedOrders);
         }
     }

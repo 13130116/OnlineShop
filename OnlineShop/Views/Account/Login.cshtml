@@ -1,6 +1,6 @@
 ﻿<h2>登入</h2>
 
-<form method="post">
+<form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
     <input type="text" name="email" placeholder="Email" />
     <br />
     <input type="password" name="password" placeholder="Password" />

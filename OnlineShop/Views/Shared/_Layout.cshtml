@@ -88,7 +88,7 @@
                                 </a>
                             </li>
                         }
-                        
+
                     </ul>
 
                     <ul class="navbar-nav">
@@ -116,7 +116,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - OnlineShop 
+            &copy; 2026 - OnlineShop
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -127,16 +127,36 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
         $(document).ready(function () {
-
+            // 同時接收後台傳過來的成功與錯誤訊息
             var successMessage = '@TempData["SuccessMessage"]';
+            var errorMessage = '@TempData["ErrorMessage"]';
 
+            // 統一設定引導升級的 Toastr 參數
+            toastr.options = {
+                "closeButton": true,            // 顯示右上角關閉按鈕
+                "debug": false,
+                "newestOnTop": true,
+                "progressBar": true,            // 顯示進度倒數條
+                "positionClass": "toast-bottom-right", // 🌟 精準定位于右下角，防阻擋導覽列與重要按鈕
+                "preventDuplicates": true,
+                "showDuration": "300",
+                "hideDuration": "500",
+                "timeOut": "2000",              // 🌟 縮短至 2 秒快閃消失，優化網頁體驗
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
 
+            // 成功訊息彈出綠色提示
             if (successMessage) {
-                toastr.options = {
-                    "positionClass": "toast-top-right",
-                    "timeOut": "3000"
-                };
                 toastr.success(successMessage);
+            }
+
+            // 失敗或防呆警告彈出紅色提示
+            if (errorMessage) {
+                toastr.error(errorMessage);
             }
         });
     </script>

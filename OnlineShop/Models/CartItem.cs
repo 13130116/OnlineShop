@@ -22,9 +22,14 @@
 
     public class Order
     {
-        public string OrderId { get; set; } = string.Empty;
+        public string OrderId { get; set; }
         public DateTime OrderDate { get; set; }
-        public List<CartItem> Items { get; set; } = new List<CartItem>();
+        public List<CartItem> Items { get; set; }
         public decimal TotalAmount => Items.Sum(i => i.SubTotal);
+        public string FullName { get; set; }
+        public string Phone { get; set; }
+        public string Address { get; set; }
+        public string PaymentMethod { get; set; }
+        public string Email { get; set; }
     }
 }

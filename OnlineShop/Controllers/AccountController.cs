@@ -21,18 +21,29 @@ namespace OnlineShop.Controllers
         // Login
         // ======================
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string returnUrl = null)
         {
+           
+            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(string email, string password, string returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
+
             var result = await _signInManager.PasswordSignInAsync(email, password, false, false);
 
             if (result.Succeeded)
             {
+                
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+
+               
                 return RedirectToAction("Index", "Home");
             }
 
@@ -44,14 +55,17 @@ namespace OnlineShop.Controllers
         // Register
         // ======================
         [HttpGet]
-        public IActionResult Register()
+        public IActionResult Register(string returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(string email, string password)
+        public async Task<IActionResult> Register(string email, string password, string returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
+
             var user = new ApplicationUser
             {
                 UserName = email,
@@ -63,6 +77,13 @@ namespace OnlineShop.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
+
+                
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+
                 return RedirectToAction("Index", "Home");
             }
 

@@ -1,9 +1,16 @@
-﻿@model IEnumerable<OnlineShop.Models.CartItem>
+﻿@model OnlineShop.Models.Order
 
 @{
     ViewData["Title"] = "結帳完成";
-    // 計算總金額
-    decimal totalAmount = Model.Sum(item => item.SubTotal);
+
+    // 把英文代碼轉成漂亮的中文顯示
+    string displayPayment = Model.PaymentMethod switch
+    {
+        "CreditCard" => "💳 信用卡線上刷卡",
+        "ATM" => "🏧 ATM 轉帳匯款",
+        "COD" => "🚚 貨到付款",
+        _ => Model.PaymentMethod
+    };
 }
 
 <div class="container mt-5 text-center">
@@ -12,10 +19,21 @@
         <h3 class="text-muted">感謝您的購買，您的訂單已成立。</h3>
     </div>
 
-    <div class="card mx-auto shadow-sm border-0 bg-light" style="max-width: 600px;">
+    <div class="card mx-auto shadow-sm border-0 bg-light mb-4" style="max-width: 650px;">
         <div class="card-body text-start p-4">
-            <h5 class="card-title border-bottom pb-2 mb-3 fw-bold text-secondary">🧾 結算明細</h5>
 
+            <h5 class="card-title border-bottom pb-2 mb-3 fw-bold text-secondary">📦 配送與付款資訊</h5>
+            <div class="row mb-4">
+                <div class="col-sm-6 mb-2"><span class="text-muted">訂購人姓名：</span> <strong>@Model.FullName</strong></div>
+                <div class="col-sm-6 mb-2"><span class="text-muted">聯絡電話：</span> <strong>@Model.Phone</strong></div>
+
+                <div class="col-12 mb-2"><span class="text-muted">帳號 Email：</span> <strong class="text-info">@Model.Email</strong></div>
+
+                <div class="col-12 mb-2"><span class="text-muted">寄送地址：</span> <strong>@Model.Address</strong></div>
+                <div class="col-12 mb-2"><span class="text-muted">付款方式：</span> <strong class="text-primary">@displayPayment</strong></div>
+            </div>
+
+            <h5 class="card-title border-bottom pb-2 mb-3 fw-bold text-secondary">🧾 結算明細 (訂單編號: @Model.OrderId)</h5>
             <table class="table table-borderless mb-0">
                 <thead>
                     <tr class="text-muted border-bottom">
@@ -25,26 +43,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var item in Model.Items)
                     {
                         <tr>
                             <td class="fw-bold">@item.ProductName</td>
                             <td class="text-center">@item.Quantity</td>
-                            <td class="text-end">NT$ @item.SubTotal.ToString("N0")</td>
+                            <td class="text-end">NT$ @item.SubTotal.ToString("N2")</td>
                         </tr>
                     }
                 </tbody>
                 <tfoot class="border-top">
                     <tr>
                         <td colspan="2" class="text-end fw-bold pt-3">總計金額：</td>
-                        <td class="text-end text-danger fw-bold fs-4 pt-3">NT$ @totalAmount.ToString("N0")</td>
+                        <td class="text-end text-danger fw-bold fs-4 pt-3">NT$ @Model.TotalAmount.ToString("N2")</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
 
-    <div class="mt-5">
+    <div class="mt-4">
         <a asp-controller="Products" asp-action="Index" class="btn btn-outline-primary btn-lg shadow-sm">繼續選購商品</a>
         <a asp-controller="Home" asp-action="Index" class="btn btn-secondary btn-lg ms-3 shadow-sm">回首頁</a>
     </div>
