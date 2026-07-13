@@ -5,152 +5,169 @@
 
 @{
     var title = ViewData["Title"] ?? "商品列表";
-    
     var cart = Context.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
 }
 
-<div class="text-center mb-5">
-    <h1 class="display-5 fw-bold">
-        📦 @title
-    </h1>
-    
+<div class="text-center my-5 py-2">
+    <h1 class="display-4 fw-bold mb-2" style="letter-spacing: -1px;">@title</h1>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
         @TempData["SuccessMessage"]
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
         @TempData["ErrorMessage"]
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
-    <<div class="row justify-content-center mb-4">
-
+<div class="row justify-content-center mb-5">
     <div class="col-lg-8">
-
         <form asp-action="Index" method="get">
+            <div class="d-flex gap-2">
+                <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white" style="border: 1px solid var(--apple-border);">
+                    <span class="input-group-text bg-white border-0 ps-4 text-muted">🔍</span>
+                    <input type="text"
+                           name="searchString"
+                           class="form-control border-0 ps-2 py-3 fs-6"
+                           placeholder="搜尋商品名稱"
+                           value="@Context.Request.Query["searchString"]"
+                           style="box-shadow: none;" />
+                    <button type="submit" class="btn btn-primary px-4 py-2 m-1">
+                        搜尋
+                    </button>
+                </div>
 
-            <div class="input-group shadow-sm">
-
-                <input type="text"
-                       name="searchString"
-                       class="form-control"
-                       placeholder="🔍 請輸入商品名稱"
-                       value="@Context.Request.Query["searchString"]" />
-
-                <button type="submit" class="btn btn-primary">
-                    搜尋
-                </button>
-
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <a asp-action="Create" class="btn btn-success ms-4">
-                            ＋ 新增商品
-                        </a>
-                    }
-
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-action="Create" class="btn btn-success d-inline-flex align-items-center justify-content-center px-4" style="white-space: nowrap;">
+                        ＋ 新增商品
+                    </a>
+                }
             </div>
-
         </form>
-
     </div>
-
 </div>
 
-<table class="table table-hover table-bordered align-middle shadow-sm">
-    <thead>
-        <tr>
-            <th>商品圖片</th>
-            <th>商品名稱</th>
-            <th>價格</th>
-            <th></th>
-        </tr>
-    </thead>
+<div class="card shadow-sm border-0 overflow-hidden mb-4" style="border-radius: 16px;">
+    <div class="table-responsive">
+        <table class="table align-middle m-0" style="background-color: #ffffff;">
+            <thead class="table-light" style="background-color: var(--apple-gray-bg); border-bottom: 1px solid var(--apple-border);">
+                <tr>
+                    <th class="ps-4 py-3 text-muted fw-normal" style="width: 150px;">商品圖片</th>
+                    <th class="py-3 text-muted fw-normal">商品名稱</th>
+                    <th class="py-3 text-muted fw-normal" style="width: 150px;">價格</th>
+                    <th class="pe-4 py-3 text-muted fw-normal text-end" style="width: 480px;"></th>
+                </tr>
+            </thead>
 
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @if (item.Image != null)
-                    {
-                        var base64 = Convert.ToBase64String(item.Image);
-                        var imgSrc = $"data:image/png;base64,{base64}";
-                        <img src="@imgSrc" width="100" />
-                    }
-                    else
-                    {
-                        <span>無圖片</span>
-                    }
-                </td>
-                <td>@Html.DisplayFor(modelItem => item.Name)</td>
-                <td>@Html.DisplayFor(modelItem => item.Price)</td>
-                <td>
-                    @{
-                       
-                        var cartItem = cart.FirstOrDefault(c => c.ProductId == item.Id);
-                        var inCartQty = cartItem != null ? cartItem.Quantity : 0;
-                        var availableStock = item.Stock - inCartQty;
-                        var defaultQty = availableStock > 0 ? 1 : 0;
-                    }
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr style="border-bottom: 1px solid var(--apple-border);">
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center justify-content-center bg-light rounded-3 overflow-hidden" style="width: 80px; height: 80px; border: 1px solid rgba(0,0,0,0.05);">
+                                @if (item.Image != null && item.Image.Length > 0)
+                                {
+                                    var base64 = Convert.ToBase64String(item.Image);
+                                    var imgSrc = $"data:image/png;base64,{base64}";
+                                    <img src="@imgSrc" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="@item.Name" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">📱</span>
+                                }
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <span class="fw-bold fs-6">@Html.DisplayFor(modelItem => item.Name)</span>
+                        </td>
+                        <td class="py-3">
+                            <span class="text-dark fw-normal">NT$ @Html.DisplayFor(modelItem => item.Price)</span>
+                        </td>
+                        <td class="pe-4 py-3 text-end">
+                            @{
+                                var cartItem = cart.FirstOrDefault(c => c.ProductId == item.Id);
+                                var inCartQty = cartItem != null ? cartItem.Quantity : 0;
+                                var availableStock = item.Stock - inCartQty;
+                                var defaultQty = availableStock > 0 ? 1 : 0;
+                            }
 
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">
-                            編輯
-                        </a>
-                    }
+                            <div class="d-inline-flex align-items-center gap-1">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-dark px-3" style="border-radius: 980px;">
+                                    詳情
+                                </a>
 
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
-                        詳情
-                    </a>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning px-3">
+                                        編輯
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger px-3">
+                                        刪除
+                                    </a>
+                                }
 
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
-                            刪除
-                        </a>
-                    }
+                                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-inline-flex align-items-center ms-2 gap-1">
+                                    <input type="hidden" name="productId" value="@item.Id" />
+                                    <input type="hidden" name="name" value="@item.Name" />
+                                    <input type="hidden" name="price" value="@item.Price" />
+                                    <input type="hidden" name="stock" value="@item.Stock" />
 
-                    <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-inline-flex align-items-center ms-2">
-                        <input type="hidden" name="productId" value="@item.Id" />
-                        <input type="hidden" name="name" value="@item.Name" />
-                        <input type="hidden" name="price" value="@item.Price" />
-                        <input type="hidden" name="stock" value="@item.Stock" />
+                                    <input type="number" name="quantity"
+                                           value="@defaultQty"
+                                           min="@(availableStock > 0 ? 1 : 0)"
+                                           max="@availableStock"
+                                           class="form-control form-control-sm text-center"
+                                           style="width: 60px; border-radius: 8px; border: 1px solid var(--apple-border);"
+                                           title="請輸入數量"
+                                           @(availableStock <= 0 ? "readonly" : "") />
 
-                        <input type="number" name="quantity"
-                               value="@defaultQty"
-                               min="@(availableStock > 0 ? 1 : 0)"
-                               max="@availableStock"
-                               class="form-control form-control-sm me-1"
-                               style="width: 70px;"
-                               title="請輸入數量"
-                               @(availableStock <= 0 ? "readonly" : "") />
+                                    <button type="submit" class="btn btn-sm @(availableStock <= 0 ? "btn-secondary" : "btn-primary") px-3" @(availableStock <= 0 ? "disabled" : "")>
+                                        @(availableStock <= 0 ? "已達上限" : "加入購物車")
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
 
-                        <button type="submit" class="btn btn-sm @(availableStock <= 0 ? "btn-secondary" : "btn-success")" @(availableStock <= 0 ? "disabled" : "")>
-                            @(availableStock <= 0 ? "已達上限" : "加入購物車")
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<div>
+<div class="d-flex justify-content-center align-items-center gap-3 my-5">
     @if (Model.HasPreviousPage)
     {
-        <a asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)">上一頁</a>
+        <a asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)" class="btn btn-outline-dark px-4 py-2" style="border-radius: 980px; font-size: 14px;">
+            ← 上一頁
+        </a>
     }
+    else
+    {
+        <button class="btn btn-outline-dark px-4 py-2" style="border-radius: 980px; font-size: 14px;" disabled>
+            ← 上一頁
+        </button>
+    }
+
+    <span class="text-muted small">第 @Model.PageIndex 頁</span>
+
     @if (Model.HasNextPage)
     {
-        <a asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)">下一頁</a>
+        <a asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)" class="btn btn-outline-dark px-4 py-2" style="border-radius: 980px; font-size: 14px;">
+            下一頁 →
+        </a>
+    }
+    else
+    {
+        <button class="btn btn-outline-dark px-4 py-2" style="border-radius: 980px; font-size: 14px;" disabled>
+            下一頁 →
+        </button>
     }
 </div>
