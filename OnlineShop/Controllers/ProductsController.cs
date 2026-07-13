@@ -23,11 +23,14 @@ namespace OnlineShop.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index(string searchString, int? pageNumber)
+        public async Task<IActionResult> Index(int? categoryId,string searchString,int? pageNumber)
         {
             var products = from p in _context.Product
                            select p;
-
+            if (categoryId.HasValue)
+            {
+                products = products.Where(p => p.CategoryId == categoryId.Value);
+            }
             // 搜尋功能
             if (!string.IsNullOrEmpty(searchString))
             {
