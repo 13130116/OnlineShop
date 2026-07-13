@@ -87,7 +87,7 @@ namespace OnlineShop.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewBag.Error = "註冊失敗（密碼需符合規則）";
+            ViewBag.Error = "註冊失敗，請確認密碼是否符合下方規則。";
             return View();
         }
 
