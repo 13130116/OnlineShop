@@ -89,8 +89,8 @@ namespace OnlineShop.Controllers
 
             return RedirectToAction("Details", new { id = comment.ProductId });
         }
-        
-        
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddRestockNotification(int productVariantId, int productId)
@@ -170,14 +170,14 @@ namespace OnlineShop.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Product product, IFormFile imageFile)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price,Stock")] Product product, IFormFile imageFile)
         {
             if (id != product.Id)
             {
                 return NotFound();
             }
 
-            // 移除導覽屬性或圖片檔案的驗證，避免因為這些欄位沒填而報錯
+            // 移除導覽屬性或圖片檔案的驗證，避免因為 these 欄位沒填而報錯
             ModelState.Remove("imageFile");
             ModelState.Remove("Category");
             ModelState.Remove("Comments");
@@ -186,19 +186,29 @@ namespace OnlineShop.Controllers
             {
                 try
                 {
-                    
                     var existingProduct = await _context.Product.FindAsync(id);
                     if (existingProduct == null)
                     {
                         return NotFound();
                     }
 
-                    // 更新網頁上有修改的基本欄位
+                    // 1. 更新主商品的基本欄位
                     existingProduct.Name = product.Name;
                     existingProduct.Price = product.Price;
-                    existingProduct.Stock = product.Stock; // 把庫存更新補上
+                    existingProduct.Stock = product.Stock;
 
-                   
+                    // 🌟 2. 自動同步更新底下的所有子規格庫存
+                    var variants = await _context.ProductVariants
+                        .Where(v => v.ProductId == id)
+                        .ToListAsync();
+
+                    foreach (var variant in variants)
+                    {
+                        variant.Stock = product.Stock; // 讓子規格庫存直接等於主商品庫存
+                        _context.Update(variant);
+                    }
+
+                    // 3. 處理圖片上傳
                     if (imageFile != null && imageFile.Length > 0)
                     {
                         using var ms = new MemoryStream();
@@ -207,7 +217,7 @@ namespace OnlineShop.Controllers
                     }
 
                     _context.Update(existingProduct);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(); // 一併儲存主商品與所有子規格
                 }
                 catch (DbUpdateConcurrencyException)
                 {

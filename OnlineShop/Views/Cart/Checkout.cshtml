@@ -1,0 +1,90 @@
+﻿@model OnlineShop.Models.CheckoutViewModel
+
+@{
+    ViewData["Title"] = "填寫結帳資料";
+    var cartItems = ViewBag.CartItems as IEnumerable<OnlineShop.Models.CartItem> ?? new List<CartItem>();
+    decimal totalAmount = cartItems.Sum(item => item.SubTotal);
+}
+
+<div class="container mt-5" style="max-width: 1000px;">
+    <h2 class="mb-4 fw-bold text-dark border-bottom pb-2">🛍️ 確認購買品項與配送資訊</h2>
+
+    <div class="row">
+        <div class="col-md-5 order-md-2 mb-4">
+            <div class="card shadow-sm border-0 rounded">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0 fw-bold text-secondary">🛒 購物車明細</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush mb-3">
+                        @foreach (var item in cartItems)
+                        {
+                            <li class="list-group-item d-flex justify-content-between lh-sm px-0">
+                                <div>
+                                    <h6 class="my-0 fw-bold">@item.ProductName</h6>
+                                    <small class="text-muted">數量: @item.Quantity</small>
+                                </div>
+                                <span class="text-muted">NT$ @item.SubTotal.ToString("N2")</span>
+                            </li>
+                        }
+                        <li class="list-group-item d-flex justify-content-between px-0 pt-3 border-top">
+                            <strong class="fs-5">總計金額 (NT$)</strong>
+                            <strong class="text-danger fs-4">NT$ @totalAmount.ToString("N2")</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7 order-md-1">
+            <div class="card shadow-sm border-0 rounded p-4">
+                <h5 class="mb-4 fw-bold text-secondary border-bottom pb-2">📋 填寫收件資訊</h5>
+
+                <form asp-action="SubmitOrder" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label fw-bold"></label>
+                        <input asp-for="FullName" class="form-model form-control" placeholder="請輸入真實姓名" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Phone" class="form-label fw-bold"></label>
+                        <input asp-for="Phone" class="form-model form-control" placeholder="例如：0912345678" />
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label fw-bold"></label>
+                        <input asp-for="Address" class="form-model form-control" placeholder="請填寫完整縣市、道路及門牌號碼" />
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="PaymentMethod" class="form-label fw-bold"></label>
+                        <select asp-for="PaymentMethod" class="form-select">
+                            <option value="">-- 請選擇付款方式 --</option>
+                            <option value="CreditCard">💳 信用卡線上刷卡</option>
+                            <option value="ATM">🏧 ATM 轉帳匯款</option>
+                            <option value="COD">🚚 貨到付款 (黑貓宅急便)</option>
+                        </select>
+                        <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
+                    </div>
+
+                    <hr class="mb-4">
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-lg shadow-sm fw-bold" type="submit">確認提交訂單 🚀</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">返回修改購物車</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

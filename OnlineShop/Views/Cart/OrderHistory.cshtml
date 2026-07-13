@@ -32,24 +32,47 @@
                 string collapseId = "collapse" + count;
                 string headingId = "heading" + count;
 
+                string displayPayment = order.PaymentMethod switch
+                {
+                    "CreditCard" => "💳 信用卡線上刷卡",
+                    "ATM" => "🏧 ATM 轉帳匯款",
+                    "COD" => "🚚 貨到付款",
+                    _ => order.PaymentMethod ?? "未提供"
+                };
+
                 <div class="accordion-item border-0 mb-3 shadow-sm rounded overflow-hidden">
                     <h2 class="accordion-header" id="@headingId">
                         <button class="accordion-button collapsed bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
                             <div class="d-flex w-100 justify-content-between align-items-center pe-3 flex-wrap">
                                 <div>
-                                    <span class="text-primary fw-bold">#@order.OrderId</span>
+                                    <span class="text-primary fw-bold">@order.OrderId</span>
                                     <small class="text-muted ms-3">📅 @order.OrderDate.ToString("yyyy-MM-dd HH:mm:ss")</small>
                                 </div>
                                 <div class="text-end">
                                     <span class="text-muted me-2">共 @order.Items.Sum(i => i.Quantity) 件商品</span>
-                                    <strong class="text-danger fs-5">NT$ @order.TotalAmount.ToString("N0")</strong>
+                                    <strong class="text-danger fs-5">NT$ @order.TotalAmount.ToString("N2")</strong>
                                 </div>
                             </div>
                         </button>
                     </h2>
                     <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="@headingId" data-bs-parent="#orderAccordion">
                         <div class="accordion-body bg-light">
-                            <table class="table table-responsive-sm table-centered mb-0 bg-white rounded shadow-sm">
+
+                            <div class="bg-white p-3 rounded border mb-3">
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">📦 配送與付款資訊</h6>
+                                <div class="row text-sm">
+                                    <div class="col-md-6 mb-2"><span class="text-muted">收件人：</span> <strong>@order.FullName</strong></div>
+                                    <div class="col-md-6 mb-2"><span class="text-muted">聯絡電話：</span> <strong>@order.Phone</strong></div>
+
+                                    <div class="col-12 mb-2"><span class="text-muted">帳號 Email：</span> <strong class="text-info">@order.Email</strong></div>
+
+                                    <div class="col-12 mb-2"><span class="text-muted">寄送地址：</span> <strong>@order.Address</strong></div>
+                                    <div class="col-12"><span class="text-muted">付款方式：</span> <span class="badge bg-info text-dark">@displayPayment</span></div>
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold text-secondary mb-2 ms-1">🛍️ 購買明細</h6>
+                            <table class="table table-responsive-sm table-centered mb-0 bg-white rounded shadow-sm border">
                                 <thead class="table-light">
                                     <tr>
                                         <th>商品名稱</th>
@@ -63,9 +86,9 @@
                                     {
                                         <tr>
                                             <td class="fw-bold text-dark">@item.ProductName</td>
-                                            <td class="text-center">NT$ @item.Price.ToString("N0")</td>
+                                            <td class="text-center">NT$ @item.Price.ToString("N2")</td>
                                             <td class="text-center">@item.Quantity</td>
-                                            <td class="text-end text-secondary fw-bold">NT$ @item.SubTotal.ToString("N0")</td>
+                                            <td class="text-end text-secondary fw-bold">NT$ @item.SubTotal.ToString("N2")</td>
                                         </tr>
                                     }
                                 </tbody>
