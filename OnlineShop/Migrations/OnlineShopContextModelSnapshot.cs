@@ -466,7 +466,7 @@ namespace OnlineShop.Migrations
             modelBuilder.Entity("OnlineShop.Models.ProductVariant", b =>
                 {
                     b.HasOne("OnlineShop.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("ProductVariants")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -493,6 +493,8 @@ namespace OnlineShop.Migrations
             modelBuilder.Entity("OnlineShop.Models.Product", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("ProductVariants");
                 });
 #pragma warning restore 612, 618
         }

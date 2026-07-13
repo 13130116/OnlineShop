@@ -1,14 +1,44 @@
-﻿<h2>註冊</h2>
-
-<form method="post">
-    <input type="text" name="email" placeholder="Email" />
-    <br />
-    <input type="password" name="password" placeholder="Password" />
-    <br />
-    <button type="submit">註冊</button>
-</form>
-
-@if (ViewBag.Error != null)
-{
-    <p style="color:red">@ViewBag.Error</p>
+﻿@{
+    ViewData["Title"] = "註冊";
 }
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="card border-0 shadow-lg p-5" style="width: 100%; max-width: 460px; border-radius: 24px; background-color: #ffffff;">
+
+        <div class="text-center mb-4">
+            <h1 class="fw-bold display-6 mb-2" style="letter-spacing: -1px;">建立新帳號</h1>
+            <p class="text-muted small">歡迎加入愛瘋屋，立即體驗流暢的購物服務</p>
+        </div>
+
+        <form method="post">
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger border-0 rounded-3 small py-2 mb-3 shadow-sm" role="alert">
+                    ⚠️ @ViewBag.Error
+                </div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">電子郵件信箱</label>
+                <input type="text" name="email" class="form-control px-3 py-3 fs-6 shadow-sm"
+                       placeholder="Email" style="border-radius: 12px; border: 1px solid #d2d2d7;" required />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-muted small fw-bold">密碼</label>
+                <input type="password" name="password" class="form-control px-3 py-3 fs-6 shadow-sm"
+                       placeholder="Password" style="border-radius: 12px; border: 1px solid #d2d2d7;" required />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-6 mb-3 shadow-sm" style="border-radius: 980px;">
+                註冊
+            </button>
+
+            <div class="text-center mt-2">
+                <span class="text-muted small">已經有帳號了？</span>
+                <a asp-controller="Account" asp-action="Login" class="text-primary small text-decoration-none fw-bold">立即登入 ➔</a>
+            </div>
+        </form>
+
+    </div>
+</div>
