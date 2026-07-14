@@ -1,102 +1,82 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="zh-hant">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - OnlineShop</title>
+    <title>@ViewData["Title"] - 愛瘋屋</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/OnlineShop.styles.css" asp-append-version="true" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        body {
+            padding-top: 76px;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">愛瘋屋</a>
-
-                <div class="d-flex flex-grow-1 justify-content-between">
-                    <ul class="navbar-nav flex-row flex-wrap">
+                <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">愛瘋屋</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
                         @await Component.InvokeAsync("CategoryNav")
-
-                        @* 登入狀態 *@
-                        @if (User.Identity.IsAuthenticated)
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <span class="nav-link text-dark">
-                                    👋 @User.Identity.Name
-                                </span>
+                                <a class="nav-link text-light" asp-controller="Consultations" asp-action="Index">諮詢管理</a>
                             </li>
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav mx-auto">
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item d-flex align-items-center">
+                                <span class="nav-link text-light">👋 @User.Identity.Name 歡迎光臨!</span>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    <button type="submit" class="nav-link btn btn-link text-light border-0">登出</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link text-light" asp-controller="Account" asp-action="Login">登入</a></li>
+                            <li class="nav-item"><a class="nav-link text-light" asp-controller="Account" asp-action="Register">註冊</a></li>
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto">
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
                             @if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark"
-                                       asp-controller="Consultations"
-                                       asp-action="Index">
-                                        諮詢管理
-                                    </a>
+                                    <a class="nav-link text-warning fw-bold" asp-controller="Categories" asp-action="Index">⚙️ 編輯類別順序與管理</a>
                                 </li>
                             }
                             else
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark"
-                                       asp-controller="Consultations"
-                                       asp-action="Create">
-                                        線上諮詢
-                                    </a>
+                                    <a class="nav-link text-light" asp-controller="Cart" asp-action="Index">🛒 購物車</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark"
-                                       asp-controller="Consultations"
-                                       asp-action="MyConsultations">
-                                        我的諮詢
-                                    </a>
+                                    <a class="nav-link text-light" asp-controller="Cart" asp-action="OrderHistory">歷史訂單</a>
                                 </li>
                             }
-                            <li class="nav-item">
-                                <a class="nav-link text-danger"
-                                   asp-controller="Account"
-                                   asp-action="Logout">
-                                    登出
-                                </a>
-                            </li>
                         }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">
-                                    登入
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">
-                                    註冊
-                                </a>
-                            </li>
-                        }
-                      
                     </ul>
-                    @if (!User.IsInRole("Admin"))
-                    {
-                    <ul class="navbar-nav flex-row">
-                        <li class="nav-item me-2">
-                            <a class="btn btn-outline-secondary fw-bold" asp-controller="Cart" asp-action="OrderHistory">
-                                📜 歷史訂單
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-outline-success fw-bold" asp-controller="Cart" asp-action="Index">
-                                🛒 購物車
-                            </a>
-                        </li>
-                    </ul>
-                        }
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
+        <!-- 關鍵：這裡就是讓所有內容顯示的地方 -->
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
@@ -104,40 +84,6 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            var successMessage = '@TempData["SuccessMessage"]';
-            var errorMessage = '@TempData["ErrorMessage"]';
-
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": true,
-                "progressBar": true,
-                "positionClass": "toast-bottom-right",
-                "preventDuplicates": true,
-                "showDuration": "300",
-                "hideDuration": "500",
-                "timeOut": "2000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            };
-
-            if (successMessage) {
-                toastr.success(successMessage);
-            }
-
-            if (errorMessage) {
-                toastr.error(errorMessage);
-            }
-        });
-    </script>
 </body>
 </html>
