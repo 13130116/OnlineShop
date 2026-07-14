@@ -1,113 +1,70 @@
 ﻿@model OnlineShop.Models.Product
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "新增商品";
 }
 
-<link rel="stylesheet" href="~/lib/ckeditor5/ckeditor5.css" />
-<link rel="stylesheet" href="~/lib/ckeditor5/ckeditor5-content.css" />
+<h2 class="text-center fw-bold mt-4 mb-4">新增商品</h2>
 
-<h2 class="text-center mb-4">新增商品</h2>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0" style="background-color: #f8f9fa; border-radius: 12px;">
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-4"><span class="text-danger">*</span> 表示必填欄位</p>
 
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow p-4">
-            <form asp-action="Create" enctype="multipart/form-data">
-                <p class="text-muted mb-3">
-                    <span class="text-danger">*</span> 表示必填欄位
-                </p>
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <form asp-action="Create" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                <div class="form-group mb-3">
-                    <label asp-for="Name" class="control-label">
-                        商品名稱 <span class="text-danger">*</span>
-                    </label>
-                    <input asp-for="Name" class="form-control" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
+                        <div class="form-group mb-3">
+                            <label class="control-label mb-1">商品名稱 <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" data-val="true" data-val-required="您尚未填入商品名稱" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="control-label mb-1">商品價格 <span class="text-danger">*</span></label>
+                            <input type="number" step="any" name="Price" id="Price" class="form-control" value="@Model?.Price" data-val="true" data-val-required="您尚未填入商品價格" />
+                            <span class="text-danger field-validation-valid fw-bold" data-valmsg-for="Price" data-valmsg-replace="true"></span>
+                        </div>
+
+                        <!-- 👇 補回商品庫存的輸入欄位 -->
+                        <div class="form-group mb-3">
+                            <label class="control-label mb-1">商品庫存 <span class="text-danger">*</span></label>
+                            <input type="number" name="Stock" id="Stock" class="form-control" value="@Model?.Stock" data-val="true" data-val-required="您尚未填入商品庫存" />
+                            <span class="text-danger field-validation-valid fw-bold" data-valmsg-for="Stock" data-valmsg-replace="true"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="control-label mb-1">商品類別 <span class="text-danger">*</span></label>
+                            <select name="CategoryId" id="CategoryId" class="form-control" asp-items="ViewBag.CategoryId" data-val="true" data-val-required="您尚未填入商品類別">
+                                <option value="">請選擇商品類別</option>
+                            </select>
+                            <span class="text-danger field-validation-valid fw-bold" data-valmsg-for="CategoryId" data-valmsg-replace="true"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="control-label mb-1">商品圖片 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="file" name="imageFile" class="form-control" accept="image/*" />
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="Description" class="control-label mb-1">商品描述</label>
+                            <textarea asp-for="Description" class="form-control" rows="5" id="editor"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary px-5 rounded-pill">新增</button>
+                            <a asp-action="Index" class="btn btn-link text-secondary ms-2">返回列表</a>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="form-group mb-3">
-                    <label asp-for="Price" class="control-label">
-                        商品價格 <span class="text-danger">*</span>
-                    </label>
-                    <input asp-for="Price" class="form-control" />
-                    <span asp-validation-for="Price" class="text-danger"></span>
-                </div>
-
-                <div class="form-group mb-3">
-                    <label asp-for="CategoryId" class="control-label">
-                        商品類別 <span class="text-danger">*</span>
-                    </label>
-                    <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId">
-                        <option value="">請選擇商品類別</option>
-                    </select>
-                    <span asp-validation-for="CategoryId" class="text-danger"></span>
-                </div>
-
-                <div class="form-group mb-3">
-                    <label class="control-label">
-                        商品圖片 <span class="text-danger">*</span>
-                    </label>
-                    <input type="file" name="imageFile" class="form-control" accept="image/*" />
-                    <span class="text-danger">@Html.ValidationMessage("Image")</span>
-                </div>
-
-                <div class="form-group mb-3">
-                    <label asp-for="Description" class="control-label">商品描述</label>
-                    <textarea asp-for="Description" id="product-editor" class="form-control" rows="6"></textarea>
-                    <span asp-validation-for="Description" class="text-danger"></span>
-                </div>
-
-                <hr class="my-4" />
-
-                <h4>商品規格</h4>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label>顏色</label>
-                        <input type="text"
-                               name="variantColor"
-                               class="form-control"
-                               placeholder="例如：黑色" />
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label>容量</label>
-                        <input type="text"
-                               name="variantCapacity"
-                               class="form-control"
-                               placeholder="例如：128GB" />
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label>規格價格</label>
-                        <input type="number"
-                               name="variantPrice"
-                               class="form-control" />
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label>規格庫存</label>
-                        <input type="number"
-                               name="variantStock"
-                               class="form-control" />
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <input type="submit"
-                           value="新增商品"
-                           class="btn btn-primary w-100" />
-                </div>
-            </form>
+            </div>
         </div>
     </div>
-</div>
-
-<div class="mt-3">
-    <a asp-action="Index">返回商品列表</a>
 </div>
 
 @section Scripts {
@@ -115,46 +72,12 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
-    <script src="~/lib/ckeditor5/ckeditor5.umd.js"></script>
-    <script src="~/lib/ckeditor5/translations/zh-tw.js"></script>
-
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const editorEngine = window.CKEDITOR || window.CKEditor5;
-
-            if (!editorEngine) {
-                console.error("無法載入本地 CKEditor 主程式，請確認 wwwroot/lib/ckeditor5 檔案存在。");
-                return;
-            }
-
-            const { ClassicEditor, Essentials, Paragraph, Heading, Bold, Italic, Font, Alignment, Table, TableToolbar } = editorEngine;
-
-            ClassicEditor
-                .create(document.querySelector('#product-editor'), {
-                    licenseKey: 'GPL',
-                    config: {
-                        distributionChannel: 'npm'
-                    },
-
-                    plugins: [ Essentials, Paragraph, Heading, Bold, Italic, Font, Alignment, Table, TableToolbar ],
-                    language: 'zh-tw', 
-                    toolbar: [
-                        'heading', '|',
-                        'bold', 'italic', '|',
-                        'fontColor', 'fontBackgroundColor', 'alignment', '|',
-                        'insertTable', '|',
-                        'undo', 'redo'
-                    ],
-                    table: {
-                        contentToolbar: [ 'tableColumn', 'tableRow', 'mergeTableCells' ]
-                    }
-                })
-                .then(editor => {
-                    console.log("官網版 CKEditor 5 完美解鎖並載入成功！");
-                })
-                .catch(error => {
-                    console.error("編輯器初始化失敗：", error);
-                });
-        });
+        ClassicEditor
+            .create(document.querySelector('#editor'))
+            .catch(error => {
+                console.error(error);
+            });
     </script>
 }

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿#nullable enable
+using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 
 namespace OnlineShop.Models
 {
@@ -6,16 +8,14 @@ namespace OnlineShop.Models
     {
         public int Id { get; set; }
 
-        [Display(Name = "類別名稱")]
-        public string Name { get; set; }
+        [Required(ErrorMessage = "請輸入類別名稱")]
+        public string Name { get; set; } = string.Empty;
 
-        [Display(Name = "類別圖片")]
         public byte[]? Image { get; set; }
 
-        [Display(Name = "排序")]
-        public int SortOrder { get; set; }
+        // 改回 SortOrder，與你的資料庫 Migration 完全一致
+        public int SortOrder { get; set; } = 0;
 
-        // 一個類別有很多商品
-        public List<Product> Products { get; set; }
+        public virtual ICollection<Product>? Products { get; set; }
     }
 }
