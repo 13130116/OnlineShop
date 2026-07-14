@@ -43,6 +43,95 @@ namespace OnlineShop.Controllers
             ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", product.CategoryId);
             return View(product);
         }
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> AddVariant(int productId)
+        {
+            var product = await _context.Product.FindAsync(productId);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.ProductName = product.Name;
+            ViewBag.ProductId = product.Id;
+
+            return View();
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddVariant(
+    int productId,
+    string color,
+    string capacity,
+    decimal price,
+    int stock)
+        {
+            var product = await _context.Product.FindAsync(productId);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(color))
+            {
+                ModelState.AddModelError("color", "請輸入顏色");
+            }
+
+            if (string.IsNullOrWhiteSpace(capacity))
+            {
+                ModelState.AddModelError("capacity", "請輸入容量");
+            }
+
+            if (price < 0)
+            {
+                ModelState.AddModelError("price", "價格不可小於 0");
+            }
+
+            if (stock < 0)
+            {
+                ModelState.AddModelError("stock", "庫存不可小於 0");
+            }
+
+            bool duplicateExists = await _context.ProductVariants.AnyAsync(v =>
+                v.ProductId == productId &&
+                v.Color == color.Trim() &&
+                v.Capacity == capacity.Trim());
+
+            if (duplicateExists)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "這個顏色與容量組合已經存在");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.ProductName = product.Name;
+                ViewBag.ProductId = product.Id;
+
+                return View();
+            }
+
+            var variant = new ProductVariant
+            {
+                ProductId = productId,
+                Color = color.Trim(),
+                Capacity = capacity.Trim(),
+                Price = price,
+                Stock = stock
+            };
+
+            _context.ProductVariants.Add(variant);
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = "商品規格新增成功";
+
+            return RedirectToAction("Details", new { id = productId });
+        }
 
         // --- Edit (POST) ---
         [HttpPost]
