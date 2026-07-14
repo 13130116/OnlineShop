@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "新增商品規格";
+}
+
+<h2>新增商品規格</h2>
+
+<h4>@ViewBag.ProductName</h4>
+
+<form asp-action="AddVariant" method="post">
+
+    <input type="hidden" name="productId" value="@ViewBag.ProductId" />
+
+    <div class="mb-3">
+        <label>顏色</label>
+        <input name="color" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>容量</label>
+        <input name="capacity" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>價格</label>
+        <input name="price" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>庫存</label>
+        <input name="stock" class="form-control" />
+    </div>
+
+    <button class="btn btn-primary">
+        新增規格
+    </button>
+
+</form>

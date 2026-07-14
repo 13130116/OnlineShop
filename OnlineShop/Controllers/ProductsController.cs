@@ -74,6 +74,95 @@ namespace OnlineShop.Controllers
 
             return View(product);
         }
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> AddVariant(int productId)
+        {
+            var product = await _context.Product.FindAsync(productId);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.ProductName = product.Name;
+            ViewBag.ProductId = product.Id;
+
+            return View();
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddVariant(
+    int productId,
+    string color,
+    string capacity,
+    decimal price,
+    int stock)
+        {
+            var product = await _context.Product.FindAsync(productId);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(color))
+            {
+                ModelState.AddModelError("color", "請輸入顏色");
+            }
+
+            if (string.IsNullOrWhiteSpace(capacity))
+            {
+                ModelState.AddModelError("capacity", "請輸入容量");
+            }
+
+            if (price < 0)
+            {
+                ModelState.AddModelError("price", "價格不可小於 0");
+            }
+
+            if (stock < 0)
+            {
+                ModelState.AddModelError("stock", "庫存不可小於 0");
+            }
+
+            bool duplicateExists = await _context.ProductVariants.AnyAsync(v =>
+                v.ProductId == productId &&
+                v.Color == color.Trim() &&
+                v.Capacity == capacity.Trim());
+
+            if (duplicateExists)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "這個顏色與容量組合已經存在");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.ProductName = product.Name;
+                ViewBag.ProductId = product.Id;
+
+                return View();
+            }
+
+            var variant = new ProductVariant
+            {
+                ProductId = productId,
+                Color = color.Trim(),
+                Capacity = capacity.Trim(),
+                Price = price,
+                Stock = stock
+            };
+
+            _context.ProductVariants.Add(variant);
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = "商品規格新增成功";
+
+            return RedirectToAction("Details", new { id = productId });
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -127,28 +216,72 @@ namespace OnlineShop.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Product product, IFormFile imageFile)
+        public async Task<IActionResult> Create(
+     Product product,
+     IFormFile imageFile,
+     string variantColor,
+     string variantCapacity,
+     decimal variantPrice,
+     int variantStock)
         {
+            // 規格欄位防呆
+            if (string.IsNullOrWhiteSpace(variantColor))
+            {
+                ModelState.AddModelError("variantColor", "請輸入商品顏色");
+            }
+
+            if (string.IsNullOrWhiteSpace(variantCapacity))
+            {
+                ModelState.AddModelError("variantCapacity", "請輸入商品容量");
+            }
+
+            if (variantPrice < 0)
+            {
+                ModelState.AddModelError("variantPrice", "規格價格不能小於 0");
+            }
+
+            if (variantStock < 0)
+            {
+                ModelState.AddModelError("variantStock", "規格庫存不能小於 0");
+            }
+
+            if (imageFile == null || imageFile.Length == 0)
+            {
+                ModelState.AddModelError("Image", "請上傳商品圖片");
+            }
+
             if (ModelState.IsValid)
             {
-                if (imageFile == null || imageFile.Length == 0)
-                {
-                    ModelState.AddModelError("Image", "請上傳商品圖片");
-                    ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", product.CategoryId);
-                    return View(product);
-                }
-
                 using var ms = new MemoryStream();
                 await imageFile.CopyToAsync(ms);
                 product.Image = ms.ToArray();
 
-                _context.Add(product);
+                // 先建立主商品
+                _context.Product.Add(product);
+                await _context.SaveChangesAsync();
+
+                // 再建立這個商品的第一筆規格
+                var variant = new ProductVariant
+                {
+                    ProductId = product.Id,
+                    Color = variantColor.Trim(),
+                    Capacity = variantCapacity.Trim(),
+                    Price = variantPrice,
+                    Stock = variantStock
+                };
+
+                _context.ProductVariants.Add(variant);
                 await _context.SaveChangesAsync();
 
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["CategoryId"] = new SelectList(_context.Category, "Id", "Name", product.CategoryId);
+            ViewData["CategoryId"] = new SelectList(
+                _context.Category,
+                "Id",
+                "Name",
+                product.CategoryId);
+
             return View(product);
         }
 
@@ -316,10 +449,12 @@ namespace OnlineShop.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
+        
         public async Task<IActionResult> CreateCategory(Category category)
         {
             _context.Add(category);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 

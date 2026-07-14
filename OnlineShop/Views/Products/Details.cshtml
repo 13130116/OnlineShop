@@ -24,16 +24,24 @@
         </dd>
     </dl>
 </div>
-<div>
+<div class="mb-3">
     @if (User.IsInRole("Admin"))
     {
-        <a asp-action="Edit" asp-route-id="@Model?.Id">
+        <a asp-action="Edit"
+           asp-route-id="@Model.Id"
+           class="btn btn-warning me-2">
             編輯商品
         </a>
-        <span>|</span>
+
+        <a asp-action="AddVariant"
+           asp-route-productId="@Model.Id"
+           class="btn btn-success me-2">
+            新增規格
+        </a>
     }
 
-    <a asp-action="Index">
+    <a asp-action="Index"
+       class="btn btn-secondary">
         返回商品列表
     </a>
 </div>
@@ -41,7 +49,7 @@
 
 <hr />
 <h3>商品規格</h3>
-<h3>留言區</h3>
+
 
 @if (Model.Comments != null && Model.Comments.Any())
 {
@@ -145,6 +153,7 @@ else
 {
     <p>目前沒有商品規格</p>
 }
+<h3>留言區</h3>
 <h4>新增留言</h4>
 
 <form asp-action="AddComment" method="post">
