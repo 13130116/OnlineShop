@@ -3,94 +3,99 @@
 @{
     ViewData["Title"] = "我的購物車";
 
-    // 🌟 讀取後台傳回來的「剛剛勾選了誰」記憶
     var rememberStr = TempData["RememberSelected"] as string;
     var rememberedIds = string.IsNullOrEmpty(rememberStr) ? new List<int>() : rememberStr.Split(',').Select(int.Parse).ToList();
 
-    // 如果是 null 代表是剛點進購物車，預設全勾；如果有值，就依照記憶來決定
     bool isFirstLoad = TempData["RememberSelected"] == null;
 }
 
 <h2 class="mt-4 mb-4">🛒 我的購物車清單</h2>
 
-@if (TempData["ErrorMessage"] != null)
+@if (User.IsInRole("Admin"))
 {
-    <div class="alert alert-danger alert-dismissible fade show">
-        @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show">
-        @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-@if (Model.Count == 0)
-{
-    <div class="alert alert-warning">您的購物車目前是空的喔！快去逛逛吧！</div>
+    <div class="alert alert-warning">管理員帳號無法使用購物車功能。</div>
 }
 else
 {
-    <div class="alert alert-info fw-bold" id="dynamic-summary" style="font-size: 1.1rem;">
-        目前已勾選了 <span id="checked-count" class="text-danger fs-4 mx-1">0</span> 項商品，總金額為： <span id="top-total-amount" class="text-danger fs-4 mx-1">0</span> 元
-    </div>
-
-    <table class="table table-bordered table-striped align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th class="text-center" style="width: 50px;">
-                    <input class="form-check-input" type="checkbox" id="select-all" @(isFirstLoad || rememberedIds.Count == Model.Count ? "checked" : "")>
-                </th>
-                <th>商品名稱</th>
-                <th>單價</th>
-                <th>數量</th>
-                <th>小計</th>
-                <th class="text-center">操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr data-product-id="@item.ProductId">
-                    <td class="text-center">
-                        <input class="form-check-input item-checkbox" type="checkbox" value="@item.ProductId" @(isFirstLoad || rememberedIds.Contains(item.ProductId) ? "checked" : "")>
-                    </td>
-                    <td>@item.ProductName</td>
-                    <td class="product-price">@item.Price</td>
-                    <td>
-                        <input type="number" value="@item.Quantity" min="1" max="@item.Stock" class="form-control quantity-input" style="width: 100px;" />
-                    </td>
-                    <td class="subtotal">@item.SubTotal</td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-danger btn-remove">🗑️ 刪除</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4" class="text-end fw-bold">勾選商品總計：</td>
-                <td id="total-amount" class="fw-bold text-danger fs-5">0</td>
-                <td></td>
-            </tr>
-        </tfoot>
-    </table>
-
-    <div class="d-flex justify-content-between mt-4">
-        <form asp-action="ClearCart" method="post" onsubmit="return confirm('確定要狠心清空所有商品嗎？');">
-            <button type="submit" class="btn btn-outline-danger">🗑️ 清空購物車</button>
-        </form>
-
-        <div>
-            <a asp-controller="Products" asp-action="Index" class="btn btn-secondary me-2">繼續購物</a>
-            <form id="checkout-form" asp-action="Checkout" method="post" class="d-inline">
-                <button type="button" id="btn-checkout" class="btn btn-success px-5">前往結帳 ➔</button>
-            </form>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-warning">您的購物車目前是空的喔！快去逛逛吧！</div>
+    }
+    else
+    {
+        <div class="alert alert-info fw-bold" id="dynamic-summary" style="font-size: 1.1rem;">
+            目前已勾選了 <span id="checked-count" class="text-danger fs-4 mx-1">0</span> 項商品，總金額為： <span id="top-total-amount" class="text-danger fs-4 mx-1">0</span> 元
+        </div>
+
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th class="text-center" style="width: 50px;">
+                        <input class="form-check-input" type="checkbox" id="select-all" @(isFirstLoad || rememberedIds.Count == Model.Count ? "checked" : "")>
+                    </th>
+                    <th>商品名稱</th>
+                    <th>單價</th>
+                    <th>數量</th>
+                    <th>小計</th>
+                    <th class="text-center">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr data-product-id="@item.ProductId">
+                        <td class="text-center">
+                            <input class="form-check-input item-checkbox" type="checkbox" value="@item.ProductId" @(isFirstLoad || rememberedIds.Contains(item.ProductId) ? "checked" : "")>
+                        </td>
+                        <td>@item.ProductName</td>
+                        <td class="product-price">@item.Price</td>
+                        <td>
+                            <input type="number" value="@item.Quantity" min="1" max="@item.Stock" class="form-control quantity-input" style="width: 100px;" />
+                        </td>
+                        <td class="subtotal">@item.SubTotal</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-danger btn-remove">🗑️ 刪除</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" class="text-end fw-bold">勾選商品總計：</td>
+                    <td id="total-amount" class="fw-bold text-danger fs-5">0</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="d-flex justify-content-between mt-4">
+            <form asp-action="ClearCart" method="post" onsubmit="return confirm('確定要狠心清空所有商品嗎？');">
+                <button type="submit" class="btn btn-outline-danger">🗑️ 清空購物車</button>
+            </form>
+
+            <div>
+                <a asp-controller="Products" asp-action="Index" class="btn btn-secondary me-2">繼續購物</a>
+                <form id="checkout-form" asp-action="Checkout" method="post" class="d-inline">
+                    <button type="button" id="btn-checkout" class="btn btn-success px-5">前往結帳 ➔</button>
+                </form>
+            </div>
+        </div>
+    }
 }
 
 @section Scripts {

@@ -16,32 +16,56 @@
             @foreach (var category in Model)
             {
                 <div class="col">
-                    <a asp-controller="Products" asp-action="Index" asp-route-categoryId="@category.Id" class="text-decoration-none text-dark">
-                        <div class="card home-category-card h-100 shadow-sm p-3 text-center">
-
-                            <div class="d-flex align-items-center justify-content-center mb-4" style="height: 180px;">
-                                @if (category.Image != null && category.Image.Length > 0)
-                                {
-                                    var base64 = Convert.ToBase64String(category.Image);
-                                    var imgSrc = $"data:image/png;base64,{base64}";
-                                    <img src="@imgSrc" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="@category.Name" />
-                                }
-                                else
-                                {
-                                    <div class="text-muted fs-1">📱</div>
-                                }
+                    <div class="position-relative">
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <form asp-controller="Categories" asp-action="Delete" asp-route-id="@category.Id" method="post"
+                                  onsubmit="return confirm('確定要刪除「@category.Name」這個類別嗎？');"
+                                  class="position-absolute" style="top: 8px; right: 8px; z-index: 10;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-light rounded-circle shadow-sm" style="width: 32px; height: 32px; line-height: 1;">✕</button>
+                            </form>
+                        }
+                        <a asp-controller="Products" asp-action="Index" asp-route-categoryId="@category.Id" class="text-decoration-none text-dark">
+                            <div class="card home-category-card h-100 shadow-sm p-3 text-center">
+                                <div class="d-flex align-items-center justify-content-center mb-4" style="height: 180px;">
+                                    @if (category.Image != null && category.Image.Length > 0)
+                                    {
+                                        var base64 = Convert.ToBase64String(category.Image);
+                                        var imgSrc = $"data:image/png;base64,{base64}";
+                                        <img src="@imgSrc" class="img-fluid" style="max-height: 100%; object-fit: contain;" alt="@category.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted fs-1">📱</div>
+                                    }
+                                </div>
+                                <div class="card-body p-0">
+                                    <h3 class="card-title h4 fw-bold mb-2">@category.Name</h3>
+                                    <p class="text-primary m-0 small">探索更多 ➔</p>
+                                </div>
                             </div>
-
-                            <div class="card-body p-0">
-                                <h3 class="card-title h4 fw-bold mb-2">@category.Name</h3>
-                                <p class="text-primary m-0 small">探索更多 ➔</p>
-                            </div>
-                        </div>
-                    </a>
+                        </a>
+                    </div>
                 </div>
             }
         }
-        else
+
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="col">
+                <a asp-controller="Categories" asp-action="Create" class="text-decoration-none text-dark">
+                    <div class="card home-category-card h-100 shadow-sm p-3 text-center d-flex flex-column align-items-center justify-content-center" style="border: 2px dashed #ccc; min-height: 280px;">
+                        <div class="text-center w-100">
+                            <div class="fs-1 mb-2">＋</div>
+                            <h3 class="card-title h5 fw-bold m-0">新增類別</h3>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @if ((Model == null || !Model.Any()) && !User.IsInRole("Admin"))
         {
             <div class="col-12 text-center py-5">
                 <p class="text-muted">目前暫無設定任何類別，請至後台管理新增。</p>
