@@ -11,18 +11,14 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">愛瘋屋</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="Index">商品列表</a>
-                        </li>
+
+                <div class="d-flex flex-grow-1 justify-content-between">
+                    <ul class="navbar-nav flex-row flex-wrap">
+                        @await Component.InvokeAsync("CategoryNav")
+
                         @* 登入狀態 *@
                         @if (User.Identity.IsAuthenticated)
                         {
@@ -79,8 +75,11 @@
                                 </a>
                             </li>
                         }
+                      
                     </ul>
-                    <ul class="navbar-nav">
+                    @if (!User.IsInRole("Admin"))
+                    {
+                    <ul class="navbar-nav flex-row">
                         <li class="nav-item me-2">
                             <a class="btn btn-outline-secondary fw-bold" asp-controller="Cart" asp-action="OrderHistory">
                                 📜 歷史訂單
@@ -92,6 +91,7 @@
                             </a>
                         </li>
                     </ul>
+                        }
                 </div>
             </div>
         </nav>
@@ -102,11 +102,6 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - OnlineShop
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -115,21 +110,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
         $(document).ready(function () {
-            // 同時接收後台傳過來的成功與錯誤訊息
             var successMessage = '@TempData["SuccessMessage"]';
             var errorMessage = '@TempData["ErrorMessage"]';
 
-            // 統一設定引導升級的 Toastr 參數
             toastr.options = {
-                "closeButton": true,            // 顯示右上角關閉按鈕
+                "closeButton": true,
                 "debug": false,
                 "newestOnTop": true,
-                "progressBar": true,            // 顯示進度倒數條
-                "positionClass": "toast-bottom-right", // 🌟 精準定位于右下角，防阻擋導覽列與重要按鈕
+                "progressBar": true,
+                "positionClass": "toast-bottom-right",
                 "preventDuplicates": true,
                 "showDuration": "300",
                 "hideDuration": "500",
-                "timeOut": "2000",              // 🌟 縮短至 2 秒快閃消失，優化網頁體驗
+                "timeOut": "2000",
                 "extendedTimeOut": "1000",
                 "showEasing": "swing",
                 "hideEasing": "linear",
@@ -137,12 +130,10 @@
                 "hideMethod": "fadeOut"
             };
 
-            // 成功訊息彈出綠色提示
             if (successMessage) {
                 toastr.success(successMessage);
             }
 
-            // 失敗或防呆警告彈出紅色提示
             if (errorMessage) {
                 toastr.error(errorMessage);
             }
