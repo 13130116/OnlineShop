@@ -1,45 +1,44 @@
 ﻿@model OnlineShop.Models.Category
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "新增類別";
 }
 
-<h2 class="text-center mb-4">新增類別</h2>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group mt-3">
-                <label class="control-label">類別圖片</label>
-                <input type="file"
-                       name="imageFile"
-                       class="form-control"
-                       accept="image/*" />
-                <small class="text-muted">
-                    建議尺寸：500 × 300 px
-                </small>
-            </div>
-            <div class="form-group">
-                <input type="submit"
-                       value="新增類別"
-                       class="btn btn-success w-100" />
-            </div>
-        </form>
+<div class="container mt-4">
+    <h2 class="text-center fw-bold mb-4">新增類別</h2>
+    <hr />
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            @* 務必確保有 enctype="multipart/form-data"，否則圖片不會上傳 *@
+            <form asp-action="Create" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Name" class="control-label">類別名稱</label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label">類別圖片</label>
+                    @* name="imageFile" 必須對應 Controller 參數名稱 *@
+                    <input type="file" name="imageFile" class="form-control" accept="image/*" />
+                </div>
+
+                <div class="form-group mt-4">
+                    <input type="submit" value="新增類別" class="btn btn-primary w-100" />
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <a asp-action="Index" class="text-secondary">返回列表</a>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index" class="btn btn-secondary mt-3">
-        返回類別列表
-    </a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

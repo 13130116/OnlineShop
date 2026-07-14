@@ -1,67 +1,88 @@
 ﻿@model IEnumerable<OnlineShop.Models.Category>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "類別管理";
 }
 
-<h1>Index</h1>
+<div class="container mt-4">
+    <!-- 標題與新增按鈕 (上方) -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">類別管理</h2>
+        <div class="mt-3">
+            <a asp-action="Create" class="btn btn-primary rounded-pill px-4">+ 新增類別</a>
+        </div>
+    </div>
 
-<p>
-    <a asp-action="Create" class="btn btn-success">
-        ＋ 新增類別
-    </a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>類別圖片</th>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-                <td>
-                    @if (item.Image != null)
-                    {
-                        var base64 = Convert.ToBase64String(item.Image);
-                        var imgSrc = $"data:image/png;base64,{base64}";
+    <!-- 表格區 -->
+    <table class="table align-middle shadow-sm bg-white rounded">
+        <thead class="table-light">
+            <tr>
+                <th style="width: 50px;"></th>
+                <th>圖片</th>
+                <th>類別名稱</th>
+                <th class="text-center">排序</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="categoryList">
+            @if (Model != null)
+            {
+                @foreach (var item in Model.OrderBy(c => c.SortOrder))
+                {
+                    <tr data-id="@item.Id">
+                        <td class="drag-handle" style="cursor: move; color: #aaa; text-align: center;">☰</td>
+                        <td>
+                            @if (item.Image != null)
+                            {
+                                <img src="data:image/png;base64,@Convert.ToBase64String(item.Image)" style="width: 50px; height: 50px; object-fit: contain;" />
+                            }
+                        </td>
+                        <td class="fw-bold">@item.Name</td>
+                        <td class="text-center">
+                            <a asp-action="MoveUp" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">🔼</a>
+                            <a asp-action="MoveDown" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">🔽</a>
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">編輯</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" onclick="return confirm('確定刪除?');">刪除</a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
 
-                        <img src="@imgSrc"
-                             width="120"
-                             class="img-thumbnail" />
-                    }
-                </td>
+    <!-- 回到首頁按鈕 (下方置中) -->
+    <div class="text-center mt-4 mb-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">回到首頁</a>
+    </div>
+</div>
 
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-            <td>
-                    <a asp-action="MoveUp" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">↑</a>
-                    <a asp-action="MoveDown" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">↓</a>
+@Html.AntiForgeryToken()
 
-                    <a asp-action="Edit"
-                       asp-route-id="@item.Id"
-                       class="btn btn-sm btn-warning">
-                        編輯
-                    </a>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+    const el = document.getElementById('categoryList');
+    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-                    <a asp-action="Details"
-                       asp-route-id="@item.Id"
-                       class="btn btn-sm btn-info text-white">
-                        詳情
-                    </a>
+    new Sortable(el, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function () {
+            const ids = Array.from(el.querySelectorAll('tr')).map(tr => tr.getAttribute('data-id'));
 
-                    <a asp-action="Delete"
-                       asp-route-id="@item.Id"
-                       class="btn btn-sm btn-danger">
-                        刪除
-                    </a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+            fetch('/Categories/UpdateOrder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(ids)
+            })
+            .then(response => {
+                if (!response.ok) alert('排序更新失敗');
+                else location.reload();
+            });
+        }
+    });
+</script>
