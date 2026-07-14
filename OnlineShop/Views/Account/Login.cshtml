@@ -1,9 +1,4 @@
-﻿@if (ViewBag.Error != null)
-{
-    <p style="color:red">@ViewBag.Error</p>
-}
-
-@{
+﻿@{
     ViewData["Title"] = "登入";
 }
 
@@ -26,7 +21,7 @@
 
             <div class="mb-3">
                 <label class="form-label text-muted small fw-bold">電子郵件信箱</label>
-                <input type="text" name="email" class="form-control form-control-lg py-2 px-3 shadow-sm"
+                <input type="email" name="email" class="form-control form-control-lg py-2 px-3 shadow-sm"
                        placeholder="Email" style="border-radius: 12px; border: 1px solid #e2e8f0;" required />
             </div>
 
